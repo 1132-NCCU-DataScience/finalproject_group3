@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 簡化版啟動腳本 - 避開renv問題
+# 改進版啟動腳本 - 使用 R Markdown 替代 Shiny
 # 作者: Claude 3.7 Sonnet
 
 # 設置顏色輸出
@@ -17,6 +17,10 @@ print_message() {
 
 print_error() {
   echo -e "${BLUE}[$(date +"%Y-%m-%d %H:%M:%S")] ${RED}錯誤: $1${NC}"
+}
+
+print_warning() {
+  echo -e "${BLUE}[$(date +"%Y-%m-%d %H:%M:%S")] ${YELLOW}警告: $1${NC}"
 }
 
 # 檢查目錄
@@ -38,6 +42,7 @@ print_message "已找到conda: $(conda --version)"
 
 # 檢查必要的目錄
 check_directory "output"
+check_directory "Rmd"
 
 # 確認環境是否存在並更新
 if ! conda env list | grep -q "starlink-env"; then
@@ -52,17 +57,51 @@ fi
 print_message "執行Python衛星分析..."
 conda run -n starlink-env python satellite_analysis.py
 
-# 啟動Shiny應用
-print_message "啟動Shiny Dashboard..."
+# 檢查Python是否成功執行
+if [ $? -ne 0 ]; then
+  print_error "Python分析失敗，請檢查錯誤訊息"
+  exit 1
+fi
+
+print_message "Python分析完成，結果保存在output目錄"
+
+# 生成R Markdown報告
+print_message "生成互動式HTML報告..."
 
 # 獲取 Conda 環境中的 R 庫路徑
 CONDA_R_LIBS=$(conda run -n starlink-env R -e "cat(paste(.libPaths(), collapse=':'))" | tail -n 1)
-
 print_message "使用 R 庫路徑: $CONDA_R_LIBS"
 
-# 設置 R_LIBS_USER 和 R_LIBS_SITE，並嘗試禁用 renv 的自動載入行為
-# 啟動 Shiny 應用，強制使用 conda 的 R 庫路徑
+# 檢查所需的R套件是否已安裝
+print_message "檢查R套件..."
 conda run -n starlink-env \
-    R_LIBS_USER="$CONDA_R_LIBS" \
-    R_LIBS_SITE="$CONDA_R_LIBS" \
-    R -e "options(renv.config.autoloader.enabled = FALSE); shiny::runApp('app.R', host='0.0.0.0', port=3838, launch.browser=TRUE)" 
+  R_LIBS_USER="$CONDA_R_LIBS" \
+  R_LIBS_SITE="$CONDA_R_LIBS" \
+  R -e "options(renv.config.autoloader.enabled = FALSE); pkgs <- c('tidyverse', 'plotly', 'DT', 'jsonlite', 'lubridate', 'htmlwidgets', 'knitr', 'kableExtra', 'viridis', 'rmarkdown'); missing <- pkgs[!pkgs %in% installed.packages()[,'Package']]; if(length(missing) > 0) { cat('缺少的套件: ', paste(missing, collapse=', '), '\n') } else { cat('所有所需套件已安裝\n') }"
+
+# 渲染R Markdown報告
+print_message "渲染R Markdown報告..."
+conda run -n starlink-env \
+  R_LIBS_USER="$CONDA_R_LIBS" \
+  R_LIBS_SITE="$CONDA_R_LIBS" \
+  R -e "options(renv.config.autoloader.enabled = FALSE); rmarkdown::render('Rmd/enhanced_report.Rmd', output_file = '../output/starlink_coverage_report.html')"
+
+if [ $? -ne 0 ]; then
+  print_warning "R Markdown報告生成失敗，但Python分析結果依然可用"
+  print_message "您可以查看Python生成的基本HTML報告: output/starlink_coverage_report.html"
+else
+  print_message "分析完成！報告已生成: output/starlink_coverage_report.html"
+  
+  # 嘗試自動打開報告
+  if command -v xdg-open &> /dev/null; then
+    print_message "自動打開報告..."
+    xdg-open output/starlink_coverage_report.html
+  elif command -v open &> /dev/null; then
+    print_message "自動打開報告..."
+    open output/starlink_coverage_report.html
+  else
+    print_message "請手動打開報告: output/starlink_coverage_report.html"
+  fi
+fi
+
+print_message "分析流程完成！" 

@@ -3,47 +3,41 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
-  - r-base=4.3
-  - r-reticulate
+  - python=3.10
+  - numpy<1.24  # skyfield需要較舊版本的numpy
+  - pandas
+  - matplotlib
+  - tqdm
+  - scipy
+  - plotly
+  - r-base>=4.0
   - r-tidyverse
+  - r-plotly
+  - r-dt
+  - r-jsonlite
   - r-lubridate
-  - r-sf
-  - r-ggplot2
+  - r-htmlwidgets
+  - r-knitr
+  - r-kableextra
+  - r-viridis
+  - r-rmarkdown
+  - r-reticulate
   - r-leaflet
   - r-leaflet.extras
   - r-targets
   - r-shiny
-  - r-shinydashboard
-  - r-survival
-  - r-plotly
-  - r-knitr
-  - r-kableextra
+  - r-ggplot2
   - r-gridextra
-  - r-rmarkdown
   - r-htmltools
-  - r-dt
   - r-scales
   - r-renv
-  - r-jsonlite
-  - r-htmlwidgets
   - r-quarto
   - r-tinytex
-  - r-pak
-  - r-curl
-  - r-httr
-  - r-xml2
-  - libcurl
-  - libxml2
   - openssl
   - ca-certificates
+  - jupyter
   - pip
-  - numpy<1.24
   - pip:
-    - skyfield==1.46
-    - pandas
-    - matplotlib
-    - tqdm
-    - jupyter
-    - scipy
-    - plotly 
+    - ephem
+    - pygc
+    - skyfield==1.46 

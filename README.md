@@ -1,6 +1,6 @@
 # 台北市區 24h 衛星 Handover 週期與延遲分析
 
-本專案旨在分析台北市區 24 小時內 Starlink 衛星的覆蓋情況、Handover 週期與延遲。專案包含 Python 和 R 的整合分析與視覺化工具，提供全方位的衛星追蹤與分析結果。
+本專案旨在分析台北市區 24 小時內 Starlink 衛星的覆蓋情況、Handover 週期與延遲。專案整合 Python 和 R 的分析與視覺化能力，提供全方位的衛星追蹤與分析結果。
 
 ## 功能特點
 
@@ -9,10 +9,9 @@
 - **Handover 分析**：計算衛星切換頻率與時間分布
 - **視覺化呈現**：
   - 統計表：包含可見衛星數量、覆蓋率等關鍵指標
-  - 時間線圖：顯示可見衛星數量變化與 Handover 時刻
-  - 覆蓋熱度圖：以方位角/仰角為座標顯示衛星分布密度
-  - HTML 報告：完整靜態分析報告
-  - Shiny Dashboard：互動式分析儀表板
+  - 互動式時間線圖：顯示可見衛星數量變化與 Handover 時刻
+  - 互動式覆蓋熱度圖：以方位角/仰角為座標顯示衛星分布密度
+  - HTML 互動式報告：包含完整分析結果與互動式圖表
 
 ## 環境需求
 
@@ -32,9 +31,15 @@ cd starlink-taipei-analysis
 2. 使用自動化腳本設置環境與執行分析
 
 ```bash
-chmod +x run_analysis.sh
-./run_analysis.sh
+chmod +x start.sh
+./start.sh
 ```
+
+執行此腳本將會：
+- 建立並更新必要的 conda 環境
+- 執行 Python 衛星分析模組
+- 生成互動式 HTML 報告
+- 自動打開生成的分析報告（如果系統支援）
 
 ## 手動安裝與操作
 
@@ -51,19 +56,20 @@ conda activate starlink-env
 python satellite_analysis.py
 ```
 
-3. 啟動 Shiny Dashboard
+3. 生成 R Markdown 互動式報告
 
 ```bash
-R -e "shiny::runApp('app.R', host='0.0.0.0', port=3838, launch.browser=TRUE)"
+# 確保啟用了 conda 環境
+conda activate starlink-env
+
+# 渲染 R Markdown 報告
+R -e "rmarkdown::render('Rmd/enhanced_report.Rmd', output_file = '../output/starlink_coverage_report.html')"
+
+# 查看報告
+xdg-open output/starlink_coverage_report.html  # Linux
+# 或
+open output/starlink_coverage_report.html      # macOS
 ```
-
-## 腳本參數
-
-`run_analysis.sh` 腳本支持以下參數：
-
-- `--analysis-only`：僅執行分析，不啟動儀表板
-- `--dashboard-only`：僅啟動儀表板，不執行分析
-- `--help` 或 `-h`：顯示幫助訊息
 
 ## 分析結果
 
@@ -76,21 +82,45 @@ R -e "shiny::runApp('app.R', host='0.0.0.0', port=3838, launch.browser=TRUE)"
 - `best_satellite_elevation.png`：最佳衛星仰角時間線圖
 - `handover_timeline.png`：Handover 時間線圖
 - `coverage_heatmap.html`：互動式覆蓋熱力圖
-- `starlink_coverage_report.html`：完整 HTML 報告
+- `starlink_coverage_report.html`：**完整互動式 HTML 報告** (主要查看結果的文件)
 
 ## 調整分析參數
 
-您可以在 Shiny Dashboard 中調整以下參數：
+若要調整分析參數，可以直接編輯 `satellite_analysis.py` 文件中的設定：
 
-- 緯度/經度：調整分析位置
-- 分析間隔：調整時間粒度（分鐘）
+```python
+# 台北市經緯度座標
+TAIPEI_LAT = 25.0330
+TAIPEI_LON = 121.5654
+ELEVATION = 10.0  # 假設高度(公尺)
+```
 
-## 針對台北市的預設設定
-
+針對台北市的預設設定：
 - 緯度：25.0330
 - 經度：121.5654
 - 高度：10 公尺（海拔）
 - 分析間隔：1 分鐘
+
+## 技術說明
+
+### 專案架構
+
+- **Python 部分**：使用 Skyfield 進行衛星軌道計算，分析 24 小時衛星覆蓋情況
+  - `satellite_analysis.py`：主分析腳本
+  - `py/visibility.py`：衛星可見度計算模組
+
+- **R 部分**：視覺化與報告生成
+  - `Rmd/enhanced_report.Rmd`：R Markdown 互動式報告模板
+  - `R/`：輔助分析與繪圖函數
+
+### 更新說明
+
+本專案最初使用 Shiny 儀表板呈現結果，現已改為使用 R Markdown 生成互動式 HTML 報告。這一改進帶來以下優勢：
+
+1. **無需運行伺服器**：報告生成後即可直接在瀏覽器中打開，無需啟動 Shiny 伺服器
+2. **更穩定的套件相容性**：減少 R 套件依賴，提高在不同環境中的兼容性
+3. **更易於分享**：生成的 HTML 文件可直接分享，而無需接收方安裝特定環境
+4. **保留互動性**：通過 plotly 和 DT 等套件，報告仍具有豐富的互動功能
 
 ## 環境與套件管理說明
 
@@ -98,7 +128,7 @@ R -e "shiny::runApp('app.R', host='0.0.0.0', port=3838, launch.browser=TRUE)"
 
 本專案使用 conda 管理 Python 與 R 的環境。所有必要的 R 與 Python 套件都已經在 `environment.yml` 中定義，並會通過 conda 自動安裝。
 
-**重要說明**: 為避免 C 庫編譯問題，我們建議**不要**使用 R 的 `install.packages()` 函數安裝套件，而是透過 conda 安裝所有 R 套件。這樣可以避免 libcurl、openssl 等 C 庫的編譯錯誤。
+**重要說明**: 為避免 C 庫編譯問題，建議**不要**使用 R 的 `install.packages()` 函數安裝套件，而是透過 conda 安裝所有 R 套件。
 
 ### 如何添加新套件
 
@@ -109,28 +139,26 @@ R -e "shiny::runApp('app.R', host='0.0.0.0', port=3838, launch.browser=TRUE)"
 
 ### 故障排除
 
-#### R 套件安裝錯誤
+#### 常見問題與解決方案
 
-如果遇到 R 套件安裝錯誤（尤其是與 libcurl、openssl 等 C 庫相關的錯誤），請嘗試：
+1. **NumPy 類型序列化問題**：如果出現 `TypeError: Object of type int64 is not JSON serializable` 等錯誤，這是因為 NumPy 數值類型（如 `np.int64` 或 `np.float64`）無法直接序列化為 JSON。解決方案：將 NumPy 類型轉換為 Python 原生類型（如 `int` 或 `float`）。
 
-1. 確保使用 conda 管理環境：`conda activate starlink-env`
-2. 通過 conda 安裝相關套件：`conda install -c conda-forge r-套件名稱`
-3. 避免使用 R 的 `install.packages()` 函數
+2. **R 套件缺失**：如果 R Markdown 報告生成失敗，並顯示套件缺失錯誤，請使用 conda 安裝缺失的套件：
+   ```bash
+   conda install -c conda-forge r-缺失套件名稱
+   ```
 
-#### Shiny 應用啟動問題
-
-如果 Shiny 應用啟動失敗，請檢查：
-
-1. 是否已啟用 conda 環境：`conda activate starlink-env`
-2. 所有必要的 R 套件是否已安裝（參見 `environment.yml`）
-3. 檢查端口 3838 是否被佔用，如有需要可在啟動命令中更改端口
+3. **TLE 數據下載問題**：如果衛星 TLE 數據無法下載，可能是網絡連接問題或 API 變更。可嘗試手動下載 TLE 數據，並使用 `load_tle` 方法代替自動下載：
+   ```python
+   analyzer = StarlinkAnalysis(tle_file="path/to/your/tle_file.txt")
+   ```
 
 ## 相關技術
 
 - Python：使用 Skyfield 進行衛星軌道計算
-- R：使用 Shiny 建立互動式儀表板
+- R：使用 ggplot2、plotly、DT 等套件進行數據視覺化
 - 資料視覺化：使用 Matplotlib、Plotly、ggplot2
-- 報告生成：HTML、CSS 
+- 報告生成：R Markdown、HTML、CSS、JavaScript
 
 ## 授權條款
 
