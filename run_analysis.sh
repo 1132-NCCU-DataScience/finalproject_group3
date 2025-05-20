@@ -14,6 +14,8 @@ NC='\\033[0m' # No Color
 # 默認參數
 CPU_COUNT=0  # 0表示使用所有可用CPU
 OUTPUT_DIR_NAME="output" # 定義輸出目錄名稱
+INTERVAL=1.0  # 默認分析間隔為1分鐘
+DURATION=60   # 默認分析持續時間為60分鐘
 
 # 打印帶顏色的訊息
 print_message() {
@@ -96,6 +98,8 @@ show_help() {
   echo "選項:"
   echo "  --help                    顯示此幫助訊息"
   echo "  --cpu=NUMBER              指定要使用的CPU核心數量 (默認: 使用所有可用核心)"
+  echo "  --interval=NUMBER         設置分析間隔，單位為分鐘 (默認: 1.0分鐘)"
+  echo "  --duration=NUMBER         設置分析持續時間，單位為分鐘 (默認: 60分鐘)"
   echo "  --update-tle              更新TLE數據 (默認: 否)"
   echo "  --analyze-only            只執行分析，不啟動儀表板 (默認: 否)"
   echo "  --dashboard-only          只啟動儀表板，不執行分析 (默認: 否)"
@@ -119,6 +123,20 @@ for arg in "$@"; do
       CPU_COUNT="${arg#*=}"
       if ! [[ "$CPU_COUNT" =~ ^[0-9]+$ ]]; then
         print_error "CPU數量必須是一個正整數"
+        exit 1
+      fi
+      ;;
+    --interval=*)
+      INTERVAL="${arg#*=}"
+      if ! [[ "$INTERVAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        print_error "間隔必須是一個正數"
+        exit 1
+      fi
+      ;;
+    --duration=*)
+      DURATION="${arg#*=}"
+      if ! [[ "$DURATION" =~ ^[0-9]+$ ]]; then
+        print_error "持續時間必須是一個正整數"
         exit 1
       fi
       ;;
@@ -161,11 +179,12 @@ main() {
   
   if [ "$ANALYZE" = true ]; then
     print_message "執行衛星分析 (日誌將保存在 ${OUTPUT_DIR_NAME}/analysis.log)..."
+    print_message "分析設置: 間隔=${INTERVAL}分鐘, 持續時間=${DURATION}分鐘"
     # 使用 tee 同時輸出到控制台和日誌文件
     if [ "$CPU_COUNT" -eq 0 ]; then
-      python satellite_analysis.py | tee "${OUTPUT_DIR_NAME}/analysis.log"
+      python satellite_analysis.py --interval "$INTERVAL" --duration "$DURATION" | tee "${OUTPUT_DIR_NAME}/analysis.log"
     else
-      python satellite_analysis.py --cpu "$CPU_COUNT" | tee "${OUTPUT_DIR_NAME}/analysis.log"
+      python satellite_analysis.py --cpu "$CPU_COUNT" --interval "$INTERVAL" --duration "$DURATION" | tee "${OUTPUT_DIR_NAME}/analysis.log"
     fi
     # 檢查Python腳本的退出狀態
     if [ ${PIPESTATUS[0]} -ne 0 ]; then

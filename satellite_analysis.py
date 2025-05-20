@@ -177,8 +177,13 @@ class StarlinkAnalysis:
             else:
                 raise Exception("無法下載或載入 TLE 數據")
     
-    def analyze_24h_coverage(self, interval_minutes=1):
-        """分析24小時內的衛星覆蓋情況"""
+    def analyze_24h_coverage(self, interval_minutes=1, analysis_duration_minutes=60):
+        """分析衛星覆蓋情況
+        
+        Args:
+            interval_minutes (int): 分析間隔（分鐘）
+            analysis_duration_minutes (int): 分析持續時間（分鐘），預設為60分鐘
+        """
         if not self.satellites:
             raise ValueError("沒有衛星數據可供分析")
             
@@ -190,7 +195,11 @@ class StarlinkAnalysis:
         if interval_minutes < 1:
             interval_minutes = 1
             
-        for minutes in range(0, 24 * 60, interval_minutes):
+        # 限制分析時間範圍
+        max_minutes = min(24 * 60, analysis_duration_minutes)
+        print(f"分析時間範圍設定為 {max_minutes} 分鐘")
+            
+        for minutes in range(0, max_minutes, interval_minutes):
             times.append(now + timedelta(minutes=minutes))
             
         # 轉換為 skyfield 時間
@@ -239,7 +248,8 @@ class StarlinkAnalysis:
             'avg_visible_satellites': float(coverage_df['visible_satellites'].mean()),
             'max_visible_satellites': int(coverage_df['visible_satellites'].max()),
             'min_visible_satellites': int(coverage_df['visible_satellites'].min()),
-            'coverage_percentage': float((coverage_df['visible_satellites'] > 0).mean() * 100)
+            'coverage_percentage': float((coverage_df['visible_satellites'] > 0).mean() * 100),
+            'analysis_duration_minutes': analysis_duration_minutes
         }
         
         # 保存結果
@@ -284,33 +294,21 @@ class StarlinkAnalysis:
                 plt.close()
             return
 
-        # 生成最大仰角時間線圖
-        if 'best_alt' in coverage_df.columns and not coverage_df['best_alt'].isnull().all():
-            plt.figure(figsize=(12, 6))
-            plt.plot(range(len(coverage_df)), coverage_df['best_alt'])
-            # 使用中文字體函數
-            plot_with_chinese_font('衛星最大仰角隨時間變化', '時間 (分鐘)', '最大仰角 (度)')
-            plt.grid(True, linestyle='--', alpha=0.7)
-            plt.tight_layout()
-            plt.savefig(f"{self.output_dir}/elevation_timeline.png", dpi=300)
-            plt.close()
-        else:
-            print("警告：缺少 best_alt 數據或數據全為 NaN，無法生成仰角圖")
-            plt.figure(figsize=(12, 6))
-            # 使用中文字體函數
-            plot_with_chinese_font('衛星最大仰角隨時間變化 (無數據)', '時間', '最大仰角 (度)')
-            plt.text(0.5, 0.5, '缺少仰角數據', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
-            plt.tight_layout()
-            plt.savefig(f"{self.output_dir}/elevation_timeline.png", dpi=300)
-            plt.close()
-
         # 生成可見衛星數量時間線圖
         if 'visible_satellites' in coverage_df.columns and not coverage_df['visible_satellites'].isnull().all():
             plt.figure(figsize=(12, 6))
-            plt.plot(range(len(coverage_df)), coverage_df['visible_satellites'])
+            # 創建時間索引
+            time_indices = range(len(coverage_df))
+            plt.plot(time_indices, coverage_df['visible_satellites'])
             # 使用中文字體函數
             plot_with_chinese_font('台北市區可見 Starlink 衛星數量變化', '時間 (分鐘)', '可見衛星數量 (個)')
             plt.grid(True, linestyle='--', alpha=0.7)
+            
+            # 設置X軸刻度，每5分鐘一個刻度
+            if len(coverage_df) > 20:
+                step = max(1, len(coverage_df) // 10)  # 不超過10個刻度
+                plt.xticks(time_indices[::step])
+            
             plt.tight_layout()
             plt.savefig(f"{self.output_dir}/visible_satellites_timeline.png", dpi=300)
             plt.close()
@@ -324,6 +322,34 @@ class StarlinkAnalysis:
             plt.savefig(f"{self.output_dir}/visible_satellites_timeline.png", dpi=300)
             plt.close()
 
+        # 生成最大仰角時間線圖
+        if 'best_alt' in coverage_df.columns and not coverage_df['best_alt'].isnull().all():
+            plt.figure(figsize=(12, 6))
+            # 創建時間索引
+            time_indices = range(len(coverage_df))
+            plt.plot(time_indices, coverage_df['best_alt'])
+            # 使用中文字體函數
+            plot_with_chinese_font('衛星最大仰角隨時間變化', '時間 (分鐘)', '最大仰角 (度)')
+            plt.grid(True, linestyle='--', alpha=0.7)
+            
+            # 設置X軸刻度，每5分鐘一個刻度
+            if len(coverage_df) > 20:
+                step = max(1, len(coverage_df) // 10)  # 不超過10個刻度
+                plt.xticks(time_indices[::step])
+            
+            plt.tight_layout()
+            plt.savefig(f"{self.output_dir}/elevation_timeline.png", dpi=300)
+            plt.close()
+        else:
+            print("警告：缺少 best_alt 數據或數據全為 NaN，無法生成仰角圖")
+            plt.figure(figsize=(12, 6))
+            # 使用中文字體函數
+            plot_with_chinese_font('衛星最大仰角隨時間變化 (無數據)', '時間', '最大仰角 (度)')
+            plt.text(0.5, 0.5, '缺少仰角數據', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+            plt.tight_layout()
+            plt.savefig(f"{self.output_dir}/elevation_timeline.png", dpi=300)
+            plt.close()
+
         # 生成熱力圖
         self._generate_heatmap(coverage_df)
 
@@ -332,32 +358,65 @@ class StarlinkAnalysis:
     def _generate_heatmap(self, coverage_df):
         """生成互動式熱力圖"""
         try:
-            # 創建熱力圖的基本數據
-            hours = 24
-            minutes_per_hour = 60
-            data = np.zeros((hours, minutes_per_hour))
+            # 獲取分析持續時間（分鐘）
+            duration_minutes = len(coverage_df)
             
-            # 遍歷每個時間點，填充數據
-            for i, row in coverage_df.iterrows():
-                # 跳過可能不完整的數據
-                if i >= hours * minutes_per_hour:
-                    break
-                    
-                hour = i // minutes_per_hour
-                minute = i % minutes_per_hour
-                data[hour, minute] = row['visible_satellites']
+            # 計算小時和分鐘
+            hours = duration_minutes // 60
+            minutes = duration_minutes % 60
             
-            # 創建時間標籤
-            hour_labels = [f"{h:02d}:00" for h in range(24)]
+            if hours == 0:
+                # 如果分析時間少於一小時，只顯示分鐘
+                # 創建熱力圖的基本數據
+                data = np.zeros((1, minutes))
+                
+                # 遍歷每個時間點，填充數據
+                for i, row in coverage_df.iterrows():
+                    if i >= minutes:
+                        break
+                    data[0, i] = row['visible_satellites']
+                
+                # 創建時間標籤
+                hour_labels = ["00:00"]
+                
+                # 創建熱力圖
+                fig = px.imshow(data,
+                            labels=dict(x="分鐘", y="", color="可見衛星數"),
+                            x=[f"{m:02d}" for m in range(minutes)],
+                            y=hour_labels,
+                            title=f"衛星覆蓋熱力圖 ({minutes}分鐘分析)",
+                            color_continuous_scale="Viridis",
+                            aspect="auto")
+                
+            else:
+                # 創建熱力圖的基本數據
+                data = np.zeros((hours+1, 60))
+                
+                # 遍歷每個時間點，填充數據
+                for i, row in coverage_df.iterrows():
+                    if i >= duration_minutes:
+                        break
+                        
+                    hour = i // 60
+                    minute = i % 60
+                    data[hour, minute] = row['visible_satellites']
+                
+                # 創建時間標籤
+                hour_labels = [f"{h:02d}:00" for h in range(hours+1)]
+                
+                # 創建熱力圖
+                fig = px.imshow(data,
+                            labels=dict(x="分鐘", y="小時", color="可見衛星數"),
+                            x=[f"{m:02d}" for m in range(60)],
+                            y=hour_labels,
+                            title=f"衛星覆蓋熱力圖 ({hours}小時{minutes}分鐘分析)",
+                            color_continuous_scale="Viridis",
+                            aspect="auto")
             
-            # 創建熱力圖
-            fig = px.imshow(data,
-                          labels=dict(x="分鐘", y="小時", color="可見衛星數"),
-                          x=[f"{m:02d}" for m in range(60)],
-                          y=hour_labels,
-                          title="24小時衛星覆蓋熱力圖",
-                          color_continuous_scale="Viridis",
-                          aspect="auto")
+            # 增加交互元素
+            fig.update_traces(
+                hovertemplate="時間: %{y}:%{x}<br>可見衛星數: %{z}<extra></extra>"
+            )
             
             # 調整布局
             fig.update_layout(
@@ -381,12 +440,31 @@ class StarlinkAnalysis:
                 <head>
                     <title>覆蓋率熱力圖</title>
                     <style>
-                        body { font-family: Arial; text-align: center; margin-top: 50px; }
+                        body { 
+                            font-family: 'Noto Sans TC', Arial, sans-serif; 
+                            text-align: center; 
+                            margin-top: 50px;
+                            background-color: #f8f9fa;
+                        }
+                        .error-box {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background: white;
+                            border-radius: 8px;
+                            padding: 30px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }
+                        h2 {
+                            color: #e74c3c;
+                        }
                     </style>
                 </head>
                 <body>
-                    <h2>覆蓋率熱力圖</h2>
-                    <p>生成熱力圖時發生錯誤。請檢查日誌了解詳情。</p>
+                    <div class="error-box">
+                        <h2>覆蓋率熱力圖</h2>
+                        <p>生成熱力圖時發生錯誤。請檢查日誌了解詳情。</p>
+                        <p>錯誤信息: """ + str(e) + """</p>
+                    </div>
                 </body>
                 </html>
                 """)
@@ -436,16 +514,89 @@ class StarlinkAnalysis:
         <html lang="zh-TW">
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>台北市 Starlink 衛星覆蓋分析報告</title>
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
             <style>
-                body { font-family: Arial; text-align: center; margin: 50px; }
-                .warning { color: red; }
+                body {
+                    font-family: 'Noto Sans TC', sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 0;
+                    color: #333;
+                    background-color: #f5f7fa;
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                header {
+                    background-color: #e74c3c;
+                    color: white;
+                    padding: 20px 0;
+                    margin-bottom: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    text-align: center;
+                }
+                h1 {
+                    margin: 0;
+                    font-size: 2.5em;
+                    font-weight: 700;
+                }
+                .warning-box {
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 30px;
+                    margin: 40px auto;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    text-align: center;
+                    max-width: 600px;
+                }
+                .warning-icon {
+                    font-size: 60px;
+                    color: #e74c3c;
+                    margin-bottom: 20px;
+                }
+                .warning {
+                    color: #e74c3c;
+                    font-size: 1.5em;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                }
+                .message {
+                    font-size: 1.1em;
+                    color: #7f8c8d;
+                }
+                footer {
+                    text-align: center;
+                    margin-top: 50px;
+                    padding: 20px;
+                    color: #7f8c8d;
+                    font-size: 0.9em;
+                }
             </style>
         </head>
         <body>
-            <h1>台北市 Starlink 衛星覆蓋分析報告</h1>
-            <p class="warning">無法生成報告，因為分析結果為空</p>
-            <p>請檢查日誌以獲取更多信息</p>
+            <div class="container">
+                <header>
+                    <h1>台北市 Starlink 衛星覆蓋分析報告</h1>
+                </header>
+
+                <div class="warning-box">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="warning">無法生成報告</div>
+                    <div class="message">分析結果為空，請檢查日誌以獲取更多信息</div>
+                </div>
+
+                <footer>
+                    生成於 """ + datetime.now(utc).strftime('%Y-%m-%d %H:%M:%S') + """ · 台北市 Starlink 衛星分析系統
+                </footer>
+            </div>
         </body>
         </html>
         """
@@ -495,16 +646,51 @@ class StarlinkAnalysis:
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>台北市 Starlink 衛星覆蓋分析報告</title>
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
             <style>
                 body {{
-                    font-family: Arial, sans-serif;
+                    font-family: 'Noto Sans TC', sans-serif;
                     line-height: 1.6;
                     margin: 0;
-                    padding: 20px;
+                    padding: 0;
                     color: #333;
+                    background-color: #f5f7fa;
                 }}
-                h1, h2, h3 {{
-                    color: #0066cc;
+                .container {{
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                header {{
+                    background-color: #3498db;
+                    color: white;
+                    padding: 20px 0;
+                    margin-bottom: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    text-align: center;
+                }}
+                h1 {{
+                    margin: 0;
+                    font-size: 2.5em;
+                    font-weight: 700;
+                }}
+                .analysis-time {{
+                    margin-top: 10px;
+                    font-style: italic;
+                    opacity: 0.8;
+                }}
+                h2 {{
+                    color: #2980b9;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid #eee;
+                    margin-top: 40px;
+                    margin-bottom: 30px;
+                }}
+                h3 {{
+                    color: #3498db;
+                    margin-top: 30px;
                 }}
                 .stats-container {{
                     display: flex;
@@ -513,88 +699,136 @@ class StarlinkAnalysis:
                     margin-bottom: 40px;
                 }}
                 .stat-card {{
-                    background-color: #f5f5f5;
+                    background-color: white;
                     border-radius: 8px;
-                    padding: 15px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    flex: 1 1 200px;
+                    padding: 20px;
+                    flex: 1 1 220px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    transition: transform 0.3s, box-shadow 0.3s;
+                }}
+                .stat-card:hover {{
+                    transform: translateY(-5px);
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
                 }}
                 .stat-title {{
-                    font-size: 0.9em;
-                    color: #666;
-                    margin-bottom: 5px;
+                    font-size: 1em;
+                    color: #7f8c8d;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                }}
+                .stat-title i {{
+                    margin-right: 8px;
+                    color: #3498db;
                 }}
                 .stat-value {{
-                    font-size: 1.8em;
-                    font-weight: bold;
-                    color: #0066cc;
+                    font-size: 2.2em;
+                    font-weight: 700;
+                    color: #2980b9;
+                }}
+                .visualization-container {{
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                 }}
                 img {{
                     max-width: 100%;
                     height: auto;
                     border-radius: 8px;
-                    margin-bottom: 20px;
+                    display: block;
+                    margin: 20px auto;
+                    border: 1px solid #eee;
                 }}
-                table {{
+                iframe {{
                     width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 20px;
+                    border: none;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                 }}
-                th, td {{
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
+                .analysis-params {{
+                    background-color: #eef2f5;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-top: 20px;
+                    margin-bottom: 30px;
                 }}
-                th {{
-                    background-color: #f2f2f2;
+                .param-title {{
+                    font-weight: 700;
+                    color: #34495e;
+                    display: inline-block;
+                    width: 180px;
                 }}
-                tr:nth-child(even) {{
-                    background-color: #f9f9f9;
+                footer {{
+                    text-align: center;
+                    margin-top: 50px;
+                    padding: 20px;
+                    color: #7f8c8d;
+                    font-size: 0.9em;
                 }}
             </style>
         </head>
         <body>
-            <h1>台北市 Starlink 衛星覆蓋分析報告</h1>
-            <p>分析時間: {datetime.now(utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-            
-            <h2>主要統計數據</h2>
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-title">平均可見衛星數</div>
-                    <div class="stat-value">{stats.get('avg_visible_satellites', 0):.1f}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">最大可見衛星數</div>
-                    <div class="stat-value">{stats.get('max_visible_satellites', 0)}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">最小可見衛星數</div>
-                    <div class="stat-value">{stats.get('min_visible_satellites', 0)}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">平均最佳仰角</div>
-                    <div class="stat-value">{stats.get('avg_elevation', 0):.1f}°</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">最大仰角</div>
-                    <div class="stat-value">{stats.get('max_elevation', 0):.1f}°</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">有衛星覆蓋時間比例</div>
-                    <div class="stat-value">{stats.get('coverage_percentage', 0):.1f}%</div>
-                </div>
-            </div>
-            
-            <h2>視覺化結果</h2>
-            <div>
-                <h3>可見衛星數量時間線</h3>
-                <img src="./visible_satellites_timeline.png" alt="可見衛星數量時間線">
+            <div class="container">
+                <header>
+                    <h1>台北市 Starlink 衛星覆蓋分析報告</h1>
+                    <div class="analysis-time">分析時間: {datetime.now(utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</div>
+                </header>
                 
-                <h3>最佳衛星仰角時間線</h3>
-                <img src="./elevation_timeline.png" alt="最佳衛星仰角時間線">
+                <div class="analysis-params">
+                    <div><span class="param-title">分析持續時間:</span> {stats.get('analysis_duration_minutes', 60)} 分鐘</div>
+                    <div><span class="param-title">觀測位置:</span> 緯度 {self.observer.latitude.degrees:.4f}°, 經度 {self.observer.longitude.degrees:.4f}°</div>
+                </div>
                 
-                <h3>互動式覆蓋熱力圖</h3>
-                <iframe src="./coverage_heatmap.html" width="100%" height="600px"></iframe>
+                <h2><i class="fas fa-chart-bar"></i> 主要統計數據</h2>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-satellite"></i> 平均可見衛星數</div>
+                        <div class="stat-value">{stats.get('avg_visible_satellites', 0):.1f}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-satellite-dish"></i> 最大可見衛星數</div>
+                        <div class="stat-value">{stats.get('max_visible_satellites', 0)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-satellite"></i> 最小可見衛星數</div>
+                        <div class="stat-value">{stats.get('min_visible_satellites', 0)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-angle-up"></i> 平均最佳仰角</div>
+                        <div class="stat-value">{stats.get('avg_elevation', 0):.1f}°</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-angle-double-up"></i> 最大仰角</div>
+                        <div class="stat-value">{stats.get('max_elevation', 0):.1f}°</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fas fa-signal"></i> 衛星覆蓋率</div>
+                        <div class="stat-value">{stats.get('coverage_percentage', 0):.1f}%</div>
+                    </div>
+                </div>
+                
+                <h2><i class="fas fa-chart-line"></i> 視覺化結果</h2>
+                
+                <div class="visualization-container">
+                    <h3><i class="fas fa-satellite"></i> 可見衛星數量時間線</h3>
+                    <img src="./visible_satellites_timeline.png" alt="可見衛星數量時間線">
+                </div>
+                
+                <div class="visualization-container">
+                    <h3><i class="fas fa-angle-up"></i> 最佳衛星仰角時間線</h3>
+                    <img src="./elevation_timeline.png" alt="最佳衛星仰角時間線">
+                </div>
+                
+                <div class="visualization-container">
+                    <h3><i class="fas fa-fire"></i> 衛星覆蓋熱力圖</h3>
+                    <iframe src="./coverage_heatmap.html" width="100%" height="600px"></iframe>
+                </div>
+                
+                <footer>
+                    生成於 {datetime.now(utc).strftime('%Y-%m-%d %H:%M:%S')} · 台北市 Starlink 衛星分析系統
+                </footer>
             </div>
         </body>
         </html>
@@ -609,19 +843,25 @@ if __name__ == "__main__":
     parser.add_argument('--tle', help='TLE文件路徑 (如未指定則下載最新數據)')
     parser.add_argument('--output', default='output', help='輸出目錄')
     parser.add_argument('--cpu', type=int, default=0, help='使用的CPU數量 (0表示使用所有可用CPU)')
+    parser.add_argument('--interval', type=float, default=1.0, help='分析間隔 (分鐘)')
+    parser.add_argument('--duration', type=int, default=60, help='分析持續時間 (分鐘), 預設為60分鐘')
     args = parser.parse_args()
     
     # 創建分析器物件
     analyzer = StarlinkAnalysis(output_dir=args.output)
     
     # 執行分析
-    analyzer.analyze_24h_coverage()
+    analyzer.analyze_24h_coverage(interval_minutes=args.interval, analysis_duration_minutes=args.duration)
+    
+    # 生成視覺化和報告
+    analyzer.generate_visualizations()
+    analyzer.export_html_report()
     
     # 打印分析結果
     if hasattr(analyzer, 'coverage_df') and not analyzer.coverage_df.empty:
-        visible_count_mean = analyzer.coverage_df['visible_count'].mean()
-        visible_count_max = analyzer.coverage_df['visible_count'].max()
-        visible_count_min = analyzer.coverage_df['visible_count'].min()
+        visible_count_mean = analyzer.coverage_df['visible_satellites'].mean()
+        visible_count_max = analyzer.coverage_df['visible_satellites'].max()
+        visible_count_min = analyzer.coverage_df['visible_satellites'].min()
         
         # 檢查值是否為 NaN，若是則替換為 0
         if pd.isna(visible_count_mean):
@@ -632,6 +872,7 @@ if __name__ == "__main__":
             visible_count_min = 0
             
         print(f"\n==== 分析結果摘要 ====")
+        print(f"分析持續時間: {args.duration} 分鐘")
         print(f"平均可見衛星數量: {visible_count_mean:.2f}")
         print(f"最大可見衛星數量: {visible_count_max}")
         print(f"最小可見衛星數量: {visible_count_min}")

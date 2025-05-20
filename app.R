@@ -50,12 +50,16 @@ ui <- dashboardPage(
       menuItem("報告", tabName = "report", icon = icon("file-alt")),
       hr(),
       div(style = "padding: 20px;",
-          p("分析參數:"),
+          h4("分析參數", style = "margin-top: 0;"),
           numericInput("lat", "緯度:", value = 25.0330),
           numericInput("lon", "經度:", value = 121.5654),
-          numericInput("interval", "分析間隔 (分鐘):", value = 1, min = 0.1, max = 60),
-          actionButton("analyze", "開始分析", icon = icon("play"), 
-                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
+          numericInput("interval", "分析間隔 (分鐘):", value = 1, min = 0.1, max = 10, step = 0.1),
+          numericInput("duration", "分析持續時間 (分鐘):", value = 60, min = 10, max = 1440, step = 10),
+          div(style = "text-align: center;",
+              actionButton("analyze", "開始分析", 
+                           icon = icon("play"),
+                           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4; margin-top: 10px;")
+          )
       )
     )
   ),
@@ -70,8 +74,9 @@ ui <- dashboardPage(
                 valueBoxOutput("coverage_percentage_box", width = 3)
               ),
               fluidRow(
-                box(title = "24小時可見衛星數量", status = "primary", solidHeader = TRUE,
-                    plotlyOutput("visible_satellites_plot"), width = 12)
+                box(title = "可見衛星數量", status = "primary", solidHeader = TRUE,
+                    plotlyOutput("visible_satellites_plot"), width = 12, 
+                    height = "400px")
               ),
               fluidRow(
                 box(title = "分析狀態", status = "info", solidHeader = TRUE,
@@ -82,8 +87,9 @@ ui <- dashboardPage(
       # 衛星覆蓋頁面
       tabItem(tabName = "coverage",
               fluidRow(
-                box(title = "最佳衛星仰角時間線", status = "primary", solidHeader = TRUE,
-                    plotlyOutput("best_elevation_plot"), width = 12)
+                box(title = "最佳衛星仰角", status = "primary", solidHeader = TRUE,
+                    plotlyOutput("best_elevation_plot"), width = 12, 
+                    height = "400px")
               ),
               fluidRow(
                 box(title = "衛星覆蓋數據", status = "info", solidHeader = TRUE,
@@ -95,7 +101,8 @@ ui <- dashboardPage(
       tabItem(tabName = "handover",
               fluidRow(
                 box(title = "Handover時間線", status = "primary", solidHeader = TRUE,
-                    plotlyOutput("handover_timeline_plot"), width = 12)
+                    plotlyOutput("handover_timeline_plot"), width = 12, 
+                    height = "400px")
               ),
               fluidRow(
                 box(title = "Handover詳細資料", status = "info", solidHeader = TRUE,
@@ -143,6 +150,10 @@ server <- function(input, output, session) {
     output_dir <- file.path("output", format(Sys.time(), "%Y%m%d_%H%M%S"))
     dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
     
+    # 禁用分析按鈕 (移除shinyjs功能)
+    # 將按鈕禁用的邏輯改為修改UI狀態
+    updateActionButton(session, "analyze", label = "分析中...", icon = icon("spinner", class="fa-spin"))
+    
     # 不使用 future_promise，改用同步處理
     tryCatch({
       analysis_data$status <- "正在執行Starlink衛星分析..."
@@ -158,6 +169,7 @@ output_dir = "%s"
 lat = %f
 lon = %f
 interval = %f
+duration = %d
 
 # 創建分析對象
 analyzer = StarlinkAnalysis(output_dir=output_dir)
@@ -166,7 +178,7 @@ analyzer = StarlinkAnalysis(output_dir=output_dir)
 analyzer.set_observer_location(lat, lon)
 
 # 執行分析
-stats = analyzer.analyze_24h_coverage(interval_minutes=interval)
+stats = analyzer.analyze_24h_coverage(interval_minutes=interval, analysis_duration_minutes=duration)
 
 # 保存結果
 analyzer.save_results()
@@ -174,7 +186,7 @@ analyzer.save_results()
 # 生成視覺化和報告
 analyzer.generate_visualizations()
 analyzer.export_html_report()
-', output_dir, input$lat, input$lon, input$interval))
+', output_dir, input$lat, input$lon, input$interval, input$duration))
       
       # 讀取分析結果
       analysis_data$status <- "正在載入分析結果..."
@@ -209,11 +221,14 @@ analyzer.export_html_report()
         analysis_data$report_path <- report_file
       }
       
-      analysis_data$status <- "分析完成!"
+      analysis_data$status <- paste0("分析完成! 分析時間: ", input$duration, " 分鐘")
       
     }, error = function(e) {
       analysis_data$status <- paste("分析錯誤:", e$message)
       print(e)
+    }, finally = {
+      # 重新啟用分析按鈕
+      updateActionButton(session, "analyze", label = "開始分析", icon = icon("play"))
     })
   })
   
@@ -285,10 +300,21 @@ analyzer.export_html_report()
   output$visible_satellites_plot <- renderPlotly({
     req(analysis_data$coverage_df)
     
-    p <- plot_ly(analysis_data$coverage_df, x = ~time, y = ~visible_satellites, 
+    # 確保時間資料正確格式化
+    df <- analysis_data$coverage_df
+    
+    # 檢查時間欄位，如果不是POSIXct則轉換
+    if (!inherits(df$time, "POSIXct")) {
+      df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S", tz="UTC")
+    }
+    
+    # 創建時間索引，確保X軸顯示正確
+    df$index <- 0:(nrow(df)-1)
+    
+    p <- plot_ly(df, x = ~index, y = ~visible_satellites, 
                  type = 'scatter', mode = 'lines', name = '可見衛星數量') %>%
-      layout(title = '24小時內可見Starlink衛星數量',
-             xaxis = list(title = '時間 (UTC)'),
+      layout(title = '可見Starlink衛星數量變化',
+             xaxis = list(title = '時間 (分鐘)'),
              yaxis = list(title = '可見衛星數量'))
     
     return(p)
@@ -298,10 +324,21 @@ analyzer.export_html_report()
   output$best_elevation_plot <- renderPlotly({
     req(analysis_data$coverage_df)
     
-    p <- plot_ly(analysis_data$coverage_df, x = ~time, y = ~best_alt, 
+    # 確保時間資料正確格式化
+    df <- analysis_data$coverage_df
+    
+    # 檢查時間欄位，如果不是POSIXct則轉換
+    if (!inherits(df$time, "POSIXct")) {
+      df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S", tz="UTC")
+    }
+    
+    # 創建時間索引，確保X軸顯示正確
+    df$index <- 0:(nrow(df)-1)
+    
+    p <- plot_ly(df, x = ~index, y = ~best_alt, 
                  type = 'scatter', mode = 'lines', name = '最佳衛星仰角') %>%
-      layout(title = '24小時內最佳衛星仰角',
-             xaxis = list(title = '時間 (UTC)'),
+      layout(title = '最佳衛星仰角變化',
+             xaxis = list(title = '時間 (分鐘)'),
              yaxis = list(title = '仰角 (度)'))
     
     return(p)
@@ -311,19 +348,38 @@ analyzer.export_html_report()
   output$handover_timeline_plot <- renderPlotly({
     req(analysis_data$coverage_df)
     
+    # 確保時間資料正確格式化
+    df <- analysis_data$coverage_df
+    
+    # 檢查時間欄位，如果不是POSIXct則轉換
+    if (!inherits(df$time, "POSIXct")) {
+      df$time <- as.POSIXct(df$time, format="%Y-%m-%d %H:%M:%S", tz="UTC")
+    }
+    
+    # 創建時間索引，確保X軸顯示正確
+    df$index <- 0:(nrow(df)-1)
+    
     # 創建基本圖表
-    p <- plot_ly(analysis_data$coverage_df, x = ~time, y = ~best_alt, 
+    p <- plot_ly(df, x = ~index, y = ~best_alt, 
                  type = 'scatter', mode = 'lines', name = '最佳衛星仰角') %>%
       layout(title = 'Handover時間線',
-             xaxis = list(title = '時間 (UTC)'),
+             xaxis = list(title = '時間 (分鐘)'),
              yaxis = list(title = '仰角 (度)'))
     
     # 如果有handover數據，添加垂直線
     if (!is.null(analysis_data$handovers_df) && nrow(analysis_data$handovers_df) > 0) {
-      for (i in 1:nrow(analysis_data$handovers_df)) {
+      # 對handovers數據也創建索引
+      handover_df <- analysis_data$handovers_df
+      
+      for (i in 1:nrow(handover_df)) {
+        # 找到最接近的時間點索引
+        time_point <- handover_df$time[i]
+        time_diff <- abs(difftime(df$time, time_point, units="mins"))
+        closest_index <- which.min(time_diff)
+        
         p <- add_segments(p,
-                          x = analysis_data$handovers_df$time[i], 
-                          xend = analysis_data$handovers_df$time[i],
+                          x = closest_index, 
+                          xend = closest_index,
                           y = 0, 
                           yend = 90,
                           line = list(color = 'red', width = 1, dash = 'dash'),
@@ -372,29 +428,88 @@ analyzer.export_html_report()
   
   # 覆蓋熱力圖
   output$coverage_heatmap <- renderPlotly({
-    req(analysis_data$stats)
+    req(analysis_data$coverage_df)
     
-    # 如果分析完成，從文件加載熱力圖
-    if (!is.null(analysis_data$stats) && !is.null(analysis_data$report_path)) {
-      # 取得輸出目錄
-      output_dir <- dirname(analysis_data$report_path)
+    # 如果分析完成
+    if (!is.null(analysis_data$coverage_df)) {
+      # 取得數據
+      df <- analysis_data$coverage_df
       
-      # 讀取熱力圖HTML
-      heatmap_path <- file.path(output_dir, "coverage_heatmap.html")
-      if (file.exists(heatmap_path)) {
-        # 使用plotly讀取方式
-        return(plotly::plotly_build(plotly::ggplotly(ggplot() + 
-          annotate("text", x = 0.5, y = 0.5, 
-                   label = "熱力圖已儲存，請點擊報告頁籤查看") + 
-          theme_void())))
+      # 獲取分析持續時間（分鐘）
+      duration_minutes <- nrow(df)
+      
+      # 計算小時和分鐘
+      hours <- duration_minutes %/% 60
+      minutes <- duration_minutes %% 60
+      
+      if (hours == 0) {
+        # 如果分析時間少於一小時，只顯示分鐘
+        # 創建熱力圖的基本數據
+        data_matrix <- matrix(df$visible_satellites, nrow = 1, ncol = minutes)
+        
+        # 創建熱力圖
+        p <- plot_ly(
+          z = data_matrix, 
+          type = "heatmap",
+          colorscale = "Viridis",
+          showscale = TRUE,
+          colorbar = list(title = "可見衛星數")
+        ) %>%
+        layout(
+          title = paste0("衛星覆蓋熱力圖 (", minutes, "分鐘分析)"),
+          xaxis = list(title = "分鐘", tickvals = seq(0, minutes-1, by = max(1, minutes %/% 10))),
+          yaxis = list(title = "", ticktext = list("00:00"), tickvals = list(0), showticklabels = TRUE)
+        )
+      } else {
+        # 創建小時x分鐘的矩陣
+        data_matrix <- matrix(0, nrow = hours+1, ncol = 60)
+        
+        # 填充數據
+        for (i in 1:duration_minutes) {
+          if (i <= nrow(df)) {
+            hour <- (i-1) %/% 60
+            minute <- (i-1) %% 60
+            data_matrix[hour+1, minute+1] <- df$visible_satellites[i]
+          }
+        }
+        
+        # 創建小時標籤
+        hour_labels <- paste0(formatC(0:hours, width=2, flag="0"), ":00")
+        
+        # 創建熱力圖
+        p <- plot_ly(
+          z = data_matrix, 
+          type = "heatmap",
+          colorscale = "Viridis",
+          showscale = TRUE,
+          colorbar = list(title = "可見衛星數")
+        ) %>%
+        layout(
+          title = paste0("衛星覆蓋熱力圖 (", hours, "小時", minutes, "分鐘分析)"),
+          xaxis = list(title = "分鐘", tickvals = seq(0, 59, by = 10), ticktext = paste0(seq(0, 59, by = 10))),
+          yaxis = list(title = "小時", tickvals = 0:hours, ticktext = hour_labels)
+        )
       }
+      
+      return(p)
+    } else {
+      # 返回空的熱力圖
+      return(plot_ly() %>%
+        add_annotations(
+          text = "請先執行分析以生成熱力圖",
+          x = 0.5,
+          y = 0.5,
+          xref = "paper",
+          yref = "paper",
+          showarrow = FALSE,
+          font = list(size = 20)
+        ) %>%
+        layout(
+          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+        )
+      )
     }
-    
-    # 否則顯示空圖
-    return(plotly::plotly_build(plotly::ggplotly(ggplot() + 
-      annotate("text", x = 0.5, y = 0.5, 
-               label = "請先執行分析以生成熱力圖") + 
-      theme_void())))
   })
   
   # HTML報告
@@ -455,9 +570,8 @@ analyzer.export_html_report()
         tabPanel("熱力圖", 
           fluidRow(
             column(12, 
-              h3("互動式覆蓋熱力圖"),
-              tags$iframe(src=paste0("results/", report_dir_name, "/coverage_heatmap.html"), 
-                         width="100%", height="600px", frameborder="0")
+              h3("衛星覆蓋熱力圖"),
+              plotlyOutput("report_heatmap", height = "600px")
             )
           )
         ),
@@ -472,6 +586,92 @@ analyzer.export_html_report()
       )
     } else {
       return(h3("報告檔案不存在"))
+    }
+  })
+  
+  # 報告頁面的熱力圖
+  output$report_heatmap <- renderPlotly({
+    req(analysis_data$coverage_df)
+    
+    # 與覆蓋熱力圖相同的邏輯
+    if (!is.null(analysis_data$coverage_df)) {
+      # 取得數據
+      df <- analysis_data$coverage_df
+      
+      # 獲取分析持續時間（分鐘）
+      duration_minutes <- nrow(df)
+      
+      # 計算小時和分鐘
+      hours <- duration_minutes %/% 60
+      minutes <- duration_minutes %% 60
+      
+      if (hours == 0) {
+        # 如果分析時間少於一小時，只顯示分鐘
+        # 創建熱力圖的基本數據
+        data_matrix <- matrix(df$visible_satellites, nrow = 1, ncol = minutes)
+        
+        # 創建熱力圖
+        p <- plot_ly(
+          z = data_matrix, 
+          type = "heatmap",
+          colorscale = "Viridis",
+          showscale = TRUE,
+          colorbar = list(title = "可見衛星數")
+        ) %>%
+        layout(
+          title = paste0("衛星覆蓋熱力圖 (", minutes, "分鐘分析)"),
+          xaxis = list(title = "分鐘", tickvals = seq(0, minutes-1, by = max(1, minutes %/% 10))),
+          yaxis = list(title = "", ticktext = list("00:00"), tickvals = list(0), showticklabels = TRUE)
+        )
+      } else {
+        # 創建小時x分鐘的矩陣
+        data_matrix <- matrix(0, nrow = hours+1, ncol = 60)
+        
+        # 填充數據
+        for (i in 1:duration_minutes) {
+          if (i <= nrow(df)) {
+            hour <- (i-1) %/% 60
+            minute <- (i-1) %% 60
+            data_matrix[hour+1, minute+1] <- df$visible_satellites[i]
+          }
+        }
+        
+        # 創建小時標籤
+        hour_labels <- paste0(formatC(0:hours, width=2, flag="0"), ":00")
+        
+        # 創建熱力圖
+        p <- plot_ly(
+          z = data_matrix, 
+          type = "heatmap",
+          colorscale = "Viridis",
+          showscale = TRUE,
+          colorbar = list(title = "可見衛星數")
+        ) %>%
+        layout(
+          title = paste0("衛星覆蓋熱力圖 (", hours, "小時", minutes, "分鐘分析)"),
+          xaxis = list(title = "分鐘", tickvals = seq(0, 59, by = 10), ticktext = paste0(seq(0, 59, by = 10))),
+          yaxis = list(title = "小時", tickvals = 0:hours, ticktext = hour_labels)
+        )
+      }
+      
+      return(p)
+    } else {
+      # 返回空的熱力圖
+      return(plot_ly() %>%
+        add_annotations(
+          text = "請先執行分析以生成熱力圖",
+          x = 0.5,
+          y = 0.5,
+          xref = "paper",
+          yref = "paper",
+          showarrow = FALSE,
+          font = list(size = 20)
+        ) %>%
+        layout(
+          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+        )
+      )
     }
   })
 }
