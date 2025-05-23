@@ -1,165 +1,132 @@
-# 台北市區 24h 衛星 Handover 週期與延遲分析
+# Starlink 台北衛星覆蓋分析系統
 
-本專案旨在分析台北市區 24 小時內 Starlink 衛星的覆蓋情況、Handover 週期與延遲。專案整合 Python 和 R 的分析與視覺化能力，提供全方位的衛星追蹤與分析結果。
+專為台北地區設計的 Starlink 衛星覆蓋分析系統，提供即時的衛星可見數量、覆蓋率、最佳連接仰角分析，並具備互動式網頁界面。
 
-## 功能特點
+## 主要功能
 
-- **衛星追蹤**：利用最新的 Starlink TLE 數據追蹤衛星軌道及位置
-- **覆蓋分析**：分析 24 小時內台北市區的衛星覆蓋情況
-- **Handover 分析**：計算衛星切換頻率與時間分布
-- **視覺化呈現**：
-  - 統計表：包含可見衛星數量、覆蓋率等關鍵指標
-  - 互動式時間線圖：顯示可見衛星數量變化與 Handover 時刻
-  - 互動式覆蓋熱度圖：以方位角/仰角為座標顯示衛星分布密度
-  - HTML 互動式報告：包含完整分析結果與互動式圖表
+-   **互動式網頁界面**: 使用者可選擇分析時長，即時查看分析進度與結果。
+-   **即時 TLE 數據**: 自動獲取最新的 Starlink 衛星軌道數據。
+-   **詳細分析報告**: 生成 HTML 報告，包含統計數據、時間線圖表與互動式熱力圖。
+-   **進度回報**: 分析過程中，後端會回報進度至前端界面。
+-   **命令行工具**: 提供 `starlink.py` 進行分析、系統檢查等操作。
 
-## 環境需求
+## 快速啟動
 
-- Linux 或 macOS 系統
-- [Anaconda](https://www.anaconda.com/products/distribution) 或 [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-- 互聯網連接 (用於下載最新的衛星 TLE 數據)
+1.  **安裝環境** (若尚未安裝):
+    ```bash
+    conda env create -f environment.yml
+    conda activate starlink-env
+    ```
 
-## 安裝方法
+2.  **啟動網頁服務**:
+    ```bash
+    ./start.sh
+    ```
+    或者直接執行 Flask App (開發模式):
+    ```bash
+    python app.py
+    ```
+    然後在瀏覽器中打開 `http://localhost:8080` (或 `app.py` 中配置的地址)。
 
-1. 複製專案
+## 命令行工具 (`starlink.py`)
 
-```bash
-git clone https://github.com/yourusername/starlink-taipei-analysis.git
-cd starlink-taipei-analysis
+提供一個統一的命令行界面 `starlink.py` 進行各項操作。
+
+-   **啟動網頁服務器**:
+    ```bash
+    python starlink.py web
+    python starlink.py web --port 8000 --host 127.0.0.1
+    ```
+
+-   **執行分析** (結果會自動更新到運作中的網頁服務):
+    ```bash
+    # 快速分析 (10 分鐘)
+    python starlink.py analyze --quick
+
+    # 標準分析 (預設 30 分鐘，可於 app.py 中調整預設值)
+    python starlink.py analyze
+
+    # 自定義時長與參數分析
+    python starlink.py analyze --duration 60 --interval 0.5 --min_elevation 30
+    ```
+
+-   **系統健康檢查**:
+    ```bash
+    python starlink.py health
+    ```
+
+## 專案結構
+
+```
+Starlink-Taipei/
+├── app.py                   # Flask 網頁應用程式
+├── starlink.py              # 主命令行工具
+├── start.sh                 # 快速啟動腳本 (啟動 Flask 應用)
+├── satellite_analysis.py    # 核心分析引擎
+├── scripts/
+│   └── start_web.sh         # 網頁服務啟動輔助腳本
+├── templates/
+│   └── index.html           # Flask HTML 模板 (前端主頁)
+├── utils/
+│   ├── health_check.py      # 系統健康檢查
+│   └── view_results.py      # CLI 結果查看器 (可考慮移除或簡化)
+├── output/                  # 分析結果輸出目錄
+│   ├── report.html          # HTML 完整報告
+│   ├── coverage_heatmap.html  # HTML 互動熱力圖
+│   ├── coverage_data.csv    # CSV 原始數據
+│   ├── coverage_stats.json  # JSON 統計摘要
+│   └── *.png                # PNG 圖表文件
+├── environment.yml          # Conda 環境配置
+└── README.md                # 本文件
 ```
 
-2. 使用自動化腳本設置環境與執行分析
+## 分析結果範例 (台北地區)
 
-```bash
-chmod +x start.sh
-./start.sh
-```
+-   **平均可見衛星**: 約 28-32 顆
+-   **最大可見衛星**: 約 35-39 顆
+-   **覆蓋率**: 通常為 100%
+-   **平均最佳仰角**: 約 70-80°
 
-執行此腳本將會：
-- 建立並更新必要的 conda 環境
-- 執行 Python 衛星分析模組
-- 生成互動式 HTML 報告
-- 自動打開生成的分析報告（如果系統支援）
+## 進階使用
 
-## 手動安裝與操作
+### 修改觀測位置
 
-1. 創建並激活 conda 環境
+直接修改 `satellite_analysis.py` 中的預設經緯度，或在通過 `starlink.py analyze` 命令時使用 `--lat` 和 `--lon` 參數。
 
-```bash
-conda env create -f environment.yml
-conda activate starlink-env
-```
+### 並行處理
 
-2. 執行 Python 分析
+`satellite_analysis.py` 支援使用 `--cpu` 參數指定並行處理的核心數。
+`starlink.py analyze` 也支援此參數。
 
-```bash
-python satellite_analysis.py
-```
+## 故障排除
 
-3. 生成 R Markdown 互動式報告
+-   **環境問題**: 確保 Conda 環境已正確安裝並啟動。執行 `conda activate starlink-env`，然後運行 `conda env update -f environment.yml --prune`。
+    -   如果 `conda env update` 失敗並提示 `PackagesNotFoundError`，請檢查 `environment.yml` 文件。可能需要移除或替換找不到的套件，或者尋找其他 Conda 頻道。
+-   **Flask 啟動失敗**: 檢查端口是否被佔用，或 `app.py` 中是否有語法錯誤。常見錯誤如 `ModuleNotFoundError: No module named 'flask'` 通常表示 Flask 未正確安裝，請重新執行環境更新指令。
+-   **分析失敗**: 查看終端輸出與 `output/` 目錄下的日誌或錯誤訊息。可使用 `python starlink.py health` 檢查。
+-   **權限問題**: 確保腳本有執行權限 (`chmod +x start.sh scripts/start_web.sh starlink.py app.py`)。
 
-```bash
-# 確保啟用了 conda 環境
-conda activate starlink-env
+## 更新日誌
 
-# 渲染 R Markdown 報告
-R -e "rmarkdown::render('Rmd/enhanced_report.Rmd', output_file = '../output/starlink_coverage_report.html')"
+**v3.0**
 
-# 查看報告
-xdg-open output/starlink_coverage_report.html  # Linux
-# 或
-open output/starlink_coverage_report.html      # macOS
-```
+-   引入 Flask 實現互動式網頁界面，允許用戶自選分析時長。
+-   實現分析進度條與狀態回報。
+-   簡化啟動流程，主要通過 `app.py` 提供服務。
+-   更新 `starlink.py` 命令行工具以配合 Flask 應用。
+-   調整專案結構，將 HTML 主頁移至 `templates` 目錄。
+-   移除舊的 `update_index.py`。
 
-## 分析結果
+**v2.0** 
 
-分析結果將保存在 `output` 目錄中，主要包括：
+-   專業網頁界面。
+-   一鍵啟動功能。
 
-- `satellite_coverage.csv`：衛星覆蓋數據
-- `satellite_handovers.csv`：衛星切換數據
-- `coverage_stats.json`：覆蓋統計數據
-- `visible_satellites_timeline.png`：可見衛星數量時間線圖
-- `best_satellite_elevation.png`：最佳衛星仰角時間線圖
-- `handover_timeline.png`：Handover 時間線圖
-- `coverage_heatmap.html`：互動式覆蓋熱力圖
-- `starlink_coverage_report.html`：**完整互動式 HTML 報告** (主要查看結果的文件)
+**v1.5**
 
-## 調整分析參數
+-   字型警告修復。
+-   TLE 數據重試機制。
 
-若要調整分析參數，可以直接編輯 `satellite_analysis.py` 文件中的設定：
+---
 
-```python
-# 台北市經緯度座標
-TAIPEI_LAT = 25.0330
-TAIPEI_LON = 121.5654
-ELEVATION = 10.0  # 假設高度(公尺)
-```
-
-針對台北市的預設設定：
-- 緯度：25.0330
-- 經度：121.5654
-- 高度：10 公尺（海拔）
-- 分析間隔：1 分鐘
-
-## 技術說明
-
-### 專案架構
-
-- **Python 部分**：使用 Skyfield 進行衛星軌道計算，分析 24 小時衛星覆蓋情況
-  - `satellite_analysis.py`：主分析腳本
-  - `py/visibility.py`：衛星可見度計算模組
-
-- **R 部分**：視覺化與報告生成
-  - `Rmd/enhanced_report.Rmd`：R Markdown 互動式報告模板
-  - `R/`：輔助分析與繪圖函數
-
-### 更新說明
-
-本專案最初使用 Shiny 儀表板呈現結果，現已改為使用 R Markdown 生成互動式 HTML 報告。這一改進帶來以下優勢：
-
-1. **無需運行伺服器**：報告生成後即可直接在瀏覽器中打開，無需啟動 Shiny 伺服器
-2. **更穩定的套件相容性**：減少 R 套件依賴，提高在不同環境中的兼容性
-3. **更易於分享**：生成的 HTML 文件可直接分享，而無需接收方安裝特定環境
-4. **保留互動性**：通過 plotly 和 DT 等套件，報告仍具有豐富的互動功能
-
-## 環境與套件管理說明
-
-### 關於 conda 與 R 套件
-
-本專案使用 conda 管理 Python 與 R 的環境。所有必要的 R 與 Python 套件都已經在 `environment.yml` 中定義，並會通過 conda 自動安裝。
-
-**重要說明**: 為避免 C 庫編譯問題，建議**不要**使用 R 的 `install.packages()` 函數安裝套件，而是透過 conda 安裝所有 R 套件。
-
-### 如何添加新套件
-
-如果需要添加新的 R 套件，請按照以下步驟：
-
-1. 在 `environment.yml` 文件中添加套件（格式為 `r-套件名稱`，全部小寫）
-2. 執行 `conda env update -f environment.yml` 更新環境
-
-### 故障排除
-
-#### 常見問題與解決方案
-
-1. **NumPy 類型序列化問題**：如果出現 `TypeError: Object of type int64 is not JSON serializable` 等錯誤，這是因為 NumPy 數值類型（如 `np.int64` 或 `np.float64`）無法直接序列化為 JSON。解決方案：將 NumPy 類型轉換為 Python 原生類型（如 `int` 或 `float`）。
-
-2. **R 套件缺失**：如果 R Markdown 報告生成失敗，並顯示套件缺失錯誤，請使用 conda 安裝缺失的套件：
-   ```bash
-   conda install -c conda-forge r-缺失套件名稱
-   ```
-
-3. **TLE 數據下載問題**：如果衛星 TLE 數據無法下載，可能是網絡連接問題或 API 變更。可嘗試手動下載 TLE 數據，並使用 `load_tle` 方法代替自動下載：
-   ```python
-   analyzer = StarlinkAnalysis(tle_file="path/to/your/tle_file.txt")
-   ```
-
-## 相關技術
-
-- Python：使用 Skyfield 進行衛星軌道計算
-- R：使用 ggplot2、plotly、DT 等套件進行數據視覺化
-- 資料視覺化：使用 Matplotlib、Plotly、ggplot2
-- 報告生成：R Markdown、HTML、CSS、JavaScript
-
-## 授權條款
-
-[MIT 授權條款](LICENSE) 
+**啟動系統**: 執行 `./start.sh` 或 `python app.py`，然後訪問 `http://localhost:8080`。 
