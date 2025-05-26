@@ -51,39 +51,64 @@
             <br><br>
             作為政大修資料科學的學生，我想：既然有資料科學的技能組，為什麼不自己來分析看看？
         </div>
+    </div>
 
-        <h3 class="flex items-center gap-2 text-gray-900 dark:text-gray-100 text-2xl mb-4 font-semibold">
-            <i class="fas fa-question-circle text-accent-500"></i>
-            我最想回答的問題
-        </h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
-                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
-                        <i class="fas fa-satellite"></i>
-                    </div>
-                    台北的天空中到底有多少顆 Starlink？
-                </h5>
-                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">不只是數量，還要知道它們的位置、高度、覆蓋品質</p>
+    <!-- 專案研究階段與核心議題 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-tasks"></i>
             </div>
-            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
-                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    這些資料對一般用戶意味著什麼？
-                </h5>
-                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">連線穩定嗎？會不會常常斷線？訊號品質如何？</p>
+            專案研究階段與核心議題
+        </h2>
+
+        <div class="space-y-12">
+            <!-- 第一階段 -->
+            <div class="phase-section border-l-4 border-brand-500 pl-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-r-lg">
+                <h3 class="flex items-center gap-3 text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    <span class="text-brand-500">1️⃣</span> 第一階段：現況盤點與即時觀測 <i class="fas fa-satellite text-xl ml-2 text-brand-400"></i>
+                </h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 mb-3">
+                    <strong>核心議題：</strong> 精準掌握台北地區上空 Starlink 衛星的即時分佈、數量及可視性概況。
+                </p>
+                <h4 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">關鍵衡量指標：</h4>
+                <ul class="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 pl-4">
+                    <li><strong>即時可見衛星計數：</strong> 動態追蹤在任一時間點，台北上空符合最低仰角要求的 Starlink 衛星總數。</li>
+                    <li><strong>衛星軌道參數分析：</strong> 詳細記錄並分析可見衛星的軌道高度、方位角、仰角及其隨時間的變化趨勢。</li>
+                    <li><strong>單星可視窗口分析：</strong> 計算每顆衛星在一天內，於台北地區上空的可視總時長、以及每日通過的頻次。</li>
+                </ul>
             </div>
-            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
-                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
-                        <i class="fas fa-crystal-ball"></i>
-                    </div>
-                    能不能預測未來的覆蓋狀況？
-                </h5>
-                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">隨著更多衛星發射，台北的網路環境會如何改變？</p>
+
+            <!-- 第二階段 -->
+            <div class="phase-section border-l-4 border-accent-500 pl-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-r-lg">
+                <h3 class="flex items-center gap-3 text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    <span class="text-accent-500">2️⃣</span> 第二階段：使用者網路體驗影響評估 <i class="fas fa-wifi text-xl ml-2 text-accent-400"></i>
+                </h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 mb-3">
+                    <strong>核心議題：</strong> 深入分析 Starlink 衛星的訊號特性，如何實際影響台北地區一般使用者的網路服務品質。
+                </p>
+                <h4 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">關鍵衡量指標：</h4>
+                <ul class="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 pl-4">
+                    <li><strong>傳輸延遲（Latency）：</strong> 估算數據封包從使用者終端，經衛星中繼，至地面網路出口的端對端延遲時間。</li>
+                    <li><strong>連線穩定性評估：</strong> 分析在不同情境下（如天氣變化、衛星切換過程）的封包遺失率、以及服務中斷後重新建立連線的頻率與時長。</li>
+                    <li><strong>數據吞吐量（Throughput）：</strong> 評估在實際或模擬使用場景中，使用者可獲得的平均及峰值下載／上傳速率。</li>
+                </ul>
+            </div>
+
+            <!-- 第三階段 -->
+            <div class="phase-section border-l-4 border-success-500 pl-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-r-lg">
+                <h3 class="flex items-center gap-3 text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    <span class="text-success-500">3️⃣</span> 第三階段：未來發展與效能模擬 <i class="fas fa-chart-line text-xl ml-2 text-success-400"></i>
+                </h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 mb-3">
+                    <strong>核心議題：</strong> 隨著 Starlink 星座規模的持續擴展，前瞻性預測並模擬其對台北地區未來衛星覆蓋完整性及整體服務效能的提升。
+                </p>
+                <h4 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">關鍵衡量指標：</h4>
+                <ul class="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 pl-4">
+                    <li><strong>覆蓋率與服務間隙模擬：</strong> 透過模型預測在不同衛星發射階段及總量下，台北地區的地理覆蓋率百分比，以及可能出現「無衛星服務」的間隙時長。</li>
+                    <li><strong>預期延遲表現：</strong> 模擬在未來更高密度的星座佈局下，使用者平均及極端情況下的延遲表現。</li>
+                    <li><strong>整體服務可用性（Availability）與韌性：</strong> 綜合評估系統在面對各種潛在干擾或衛星失效情境時，維持服務不中斷的能力，以及服務的年度平均可用時間百分比。</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -94,7 +119,7 @@
             <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
                 <i class="fas fa-cogs"></i>
             </div>
-            我是怎麼做到的？
+            怎麼做的？
         </h2>
         
         <div class="personal-story bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 border-l-4 border-l-brand-500 rounded-lg p-8 mb-8 italic text-lg leading-relaxed text-gray-600 dark:text-gray-300 relative">
