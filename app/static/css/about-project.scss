@@ -1,0 +1,146 @@
+// About Project Page Styles
+// 這個文件包含關於頁面的特定樣式，補充 Tailwind 無法覆蓋的部分
+
+// 主題切換按鈕特殊效果
+.theme-toggle {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// 英雄區塊背景圖案
+.hero-pattern {
+  background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%);
+}
+
+// 個人故事區塊的引號
+.personal-story {
+  &::before {
+    content: '"';
+    position: absolute;
+    top: -0.5rem;
+    left: 1rem;
+    font-size: 3rem;
+    color: theme('colors.brand.500');
+    opacity: 0.3;
+    font-family: serif;
+    pointer-events: none;
+  }
+}
+
+// 問題卡片的左邊框動畫
+.question-card {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: theme('colors.brand.500');
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+    transform-origin: bottom;
+  }
+  
+  &:hover::before {
+    transform: scaleY(1);
+  }
+}
+
+// 統計卡片的上邊框動畫
+.stat-card {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: theme('colors.brand.500');
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+  
+  &:hover::before {
+    transform: scaleX(1);
+  }
+}
+
+// 聯絡資訊區塊的漸層背景
+.contact-gradient {
+  background: linear-gradient(135deg, theme('colors.success.50'), theme('colors.success.100'));
+  border-color: theme('colors.success.300');
+  
+  .dark & {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(5, 150, 105, 0.05));
+    border-color: rgba(5, 150, 105, 0.3);
+  }
+}
+
+// 技術架構卡片的懸停效果
+.tech-card {
+  li {
+    transition: all 0.25s ease;
+    
+    &:hover {
+      padding-left: 0.5rem;
+      color: theme('colors.brand.500');
+    }
+  }
+}
+
+// 方法步驟的圓形數字
+.step-number {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+// 平滑滾動
+html {
+  scroll-behavior: smooth;
+}
+
+// 選擇文字樣式
+::selection {
+  background: theme('colors.brand.500');
+  color: white;
+}
+
+// 焦點樣式 - WCAG 合規
+.focusable {
+  &:focus {
+    outline: 2px solid theme('colors.accent.500');
+    outline-offset: 2px;
+  }
+}
+
+// 減少動畫偏好
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+// 響應式設計優化
+@media (max-width: 768px) {
+  .theme-toggle {
+    top: 80px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+  }
+} 

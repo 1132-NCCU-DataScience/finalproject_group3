@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}關於專案 - Starlink 台北衛星覆蓋分析{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首頁</a></li>
+        <li class="breadcrumb-item active">關於</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about-project.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- 主題切換按鈕 -->
+<button class="theme-toggle fixed top-24 right-5 z-50 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-300 text-gray-800 dark:text-gray-200 hover:scale-110 focusable" 
+        aria-label="切換深色/淺色模式">
+    <i class="fas fa-moon" id="theme-icon"></i>
+</button>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 英雄區塊 -->
+    <div class="hero-section bg-brand-500 text-white p-16 rounded-2xl text-center mb-12 shadow-2xl relative overflow-hidden">
+        <div class="hero-pattern absolute inset-0 opacity-60"></div>
+        <div class="hero-content relative z-10">
+            <div class="text-5xl mb-6 opacity-90">
+                <i class="fas fa-satellite"></i>
+            </div>
+            <h1 class="text-4xl lg:text-6xl font-bold mb-4 tracking-tight">關於這個專案</h1>
+            <p class="text-lg lg:text-xl opacity-90 font-normal max-w-2xl mx-auto">政大的一群學生對台北天空中 Starlink 衛星的好奇</p>
+        </div>
+    </div>
+
+    <!-- 專案動機區塊 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            為什麼開始這個專案？
+        </h2>
+        
+        <div class="personal-story bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 border-l-4 border-l-brand-500 rounded-lg p-8 mb-8 italic text-lg leading-relaxed text-gray-600 dark:text-gray-300 relative">
+            身為一個對衛星技術著迷的資訊科學學生，我經常想：「當 Starlink 這些小衛星在我們頭頂飛過時，台北到底能收到多好的訊號？甚至我們根本用肉眼根本看不到那些衛星」
+            <br><br>
+            這個好奇心在 2024 年初變得更加強烈。當時看到 SpaceX 不斷發射新的 Starlink 衛星，但網路上卻很少有針對台灣地區的詳細分析。大部分討論都停留在「理論上可以用」的層面，缺乏真正的數據驗證。
+            <br><br>
+            作為政大修資料科學的學生，我想：既然有資料科學的技能組，為什麼不自己來分析看看？
+        </div>
+
+        <h3 class="flex items-center gap-2 text-gray-900 dark:text-gray-100 text-2xl mb-4 font-semibold">
+            <i class="fas fa-question-circle text-accent-500"></i>
+            我最想回答的問題
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
+                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
+                        <i class="fas fa-satellite"></i>
+                    </div>
+                    台北的天空中到底有多少顆 Starlink？
+                </h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">不只是數量，還要知道它們的位置、高度、覆蓋品質</p>
+            </div>
+            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
+                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    這些資料對一般用戶意味著什麼？
+                </h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">連線穩定嗎？會不會常常斷線？訊號品質如何？</p>
+            </div>
+            <div class="question-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-1">
+                <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 text-brand-500 rounded-md flex items-center justify-center text-sm">
+                        <i class="fas fa-crystal-ball"></i>
+                    </div>
+                    能不能預測未來的覆蓋狀況？
+                </h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">隨著更多衛星發射，台北的網路環境會如何改變？</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 技術方法區塊 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-cogs"></i>
+            </div>
+            我是怎麼做到的？
+        </h2>
+        
+        <div class="personal-story bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 border-l-4 border-l-brand-500 rounded-lg p-8 mb-8 italic text-lg leading-relaxed text-gray-600 dark:text-gray-300 relative">
+            說實話，一開始我也不知道該從哪裡下手。衛星軌道計算聽起來就很複雜，但我發現了一些好用的工具...
+        </div>
+
+        <div class="mt-8 space-y-8">
+            <div class="method-step flex items-start gap-6 p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md">
+                <div class="step-number bg-success-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">01</div>
+                <div class="step-content">
+                    <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">找到數據源頭</h4>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">發現了 TLE（Two-Line Element）這種衛星軌道數據格式。簡單說，就是每顆衛星的「身分證」，記錄著它的軌道參數。</p>
+                </div>
+            </div>
+            
+            <div class="method-step flex items-start gap-6 p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md">
+                <div class="step-number bg-success-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">02</div>
+                <div class="step-content">
+                    <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">選擇計算工具</h4>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">用了 Python 的 Skyfield 函式庫，它可以根據 TLE 數據計算出任何時間點衛星的精確位置。有點像 GPS 倒過來用的感覺。</p>
+                </div>
+            </div>
+            
+            <div class="method-step flex items-start gap-6 p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md">
+                <div class="step-number bg-success-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">03</div>
+                <div class="step-content">
+                    <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">建立分析框架</h4>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">設定台北的經緯度（25.0330°N, 121.5654°E），然後計算每個時間點有哪些衛星「看得到」，仰角多少度，訊號品質如何。</p>
+                </div>
+            </div>
+            
+            <div class="method-step flex items-start gap-6 p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md">
+                <div class="step-number bg-success-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">04</div>
+                <div class="step-content">
+                    <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">視覺化呈現</h4>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">數字很枯燥，所以我用 Plotly 做了互動式圖表，讓大家可以直觀地看到衛星覆蓋的變化。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計數據 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            專案資料一覽
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+            <div class="stat-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-2">
+                <div class="text-4xl font-bold text-brand-500 mb-2 leading-none" data-count="5000" data-prefix="~">~5000</div>
+                <div class="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">追蹤的 Starlink 衛星</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 italic">數量持續增加中</div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-2">
+                <div class="text-4xl font-bold text-brand-500 mb-2 leading-none" data-count="30" data-prefix="" data-suffix="">28-32</div>
+                <div class="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">台北平均可見衛星</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 italic">任意時刻</div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-2">
+                <div class="text-4xl font-bold text-brand-500 mb-2 leading-none" data-count="30" data-suffix="秒">30秒</div>
+                <div class="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">分析時間間隔</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 italic">精確度與效率的平衡</div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 relative overflow-hidden hover:shadow-lg hover:-translate-y-2">
+                <div class="text-4xl font-bold text-brand-500 mb-2 leading-none" data-count="100" data-suffix="+">100+</div>
+                <div class="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">分析報告生成</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 italic">持續優化中</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 意外發現區塊 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-surprise"></i>
+            </div>
+            意外的發現
+        </h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <div class="insight-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="text-4xl mb-4">🤯</div>
+                <h5 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">台北的覆蓋率比我想像的好太多！</h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">原本以為會有很多死角，結果發現幾乎 24 小時都有 99% 以上的覆蓋率。Starlink 的軌道設計真的很厲害。</p>
+            </div>
+            
+            <div class="insight-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="text-4xl mb-4">📈</div>
+                <h5 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">衛星數量的季節性變化</h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">發現可見衛星數量會隨著季節變化，這跟地球公轉軌道和衛星群的相對位置有關。春天和秋天的覆蓋品質特別好。</p>
+            </div>
+            
+            <div class="insight-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="text-4xl mb-4">🎯</div>
+                <h5 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">最佳連線時機</h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">通過分析發現，晚上 8-10 點通常是一天中衛星覆蓋最密集的時段。可能正好符合大家的上網高峰期？</p>
+            </div>
+            
+            <div class="insight-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="text-4xl mb-4">⚡</div>
+                <h5 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">切換頻率比預期低</h5>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">原本擔心衛星會一直切換造成不穩定，但實際分析發現平均 4-7 分鐘才切換一次，比我預期的穩定很多。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 個人反思區塊 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-heart"></i>
+            </div>
+            做這個專案的心得
+        </h2>
+        
+        <div class="personal-reflection bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-10 mt-6">
+            <p class="reflection-text text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-6">說實話，這個專案比我原本想像的複雜很多。光是理解 TLE 格式就花了我好幾天，更別說要把這些 handover 網路的概念搞懂。</p>
+            
+            <p class="reflection-text text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-6">但最有成就感的是當我第一次看到自己寫的程式成功預測出衛星位置，然後用網路查證發現真的準確時，並且讓人可以直接用網頁查詢</p>
+            
+            <h4 class="advice-title text-brand-500 text-xl font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-graduation-cap"></i>
+                對修資料科學同學的建議：
+            </h4>
+            
+            <div class="advice-list bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-6 mt-4">
+                <ul class="space-y-3 pl-6">
+                    <li class="leading-relaxed text-gray-600 dark:text-gray-400">
+                        <strong class="text-gray-900 dark:text-gray-100">不要害怕碰觸看起來很複雜的領域</strong> - 衛星軌道計算聽起來很嚇人，但有好的工具就沒那麼難
+                    </li>
+                    <li class="leading-relaxed text-gray-600 dark:text-gray-400">
+                        <strong class="text-gray-900 dark:text-gray-100">視覺化真的很重要</strong> - 再好的分析，如果別人看不懂就沒有價值
+                    </li>
+                    <li class="leading-relaxed text-gray-600 dark:text-gray-400">
+                        <strong class="text-gray-900 dark:text-gray-100">開源很棒</strong> - 這個專案幾乎都是用開源工具完成的，感謝那些無私分享的開發者
+                    </li>
+                </ul>
+            </div>
+            
+            <p class="highlight-text text-lg font-semibold text-success-500 mt-6">如果你也對衛星技術或太空科技有興趣，真的很歡迎一起來研究！</p>
+        </div>
+    </div>
+
+    <!-- 聯絡資訊區塊 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <div class="contact-gradient rounded-xl p-8">
+            <h4 class="text-success-500 text-2xl font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-envelope"></i> 
+                聯絡我們
+            </h4>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">如果您對這個專案有興趣、想要合作研究，或者有任何問題想討論，歡迎與我聯絡：</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                <a href="https://github.com/Starlink-Taipei" class="contact-link inline-flex items-center gap-2 text-success-500 no-underline py-3 px-5 bg-white border border-success-300 rounded-lg transition-all duration-300 font-medium hover:text-white hover:bg-success-500 hover:no-underline hover:-translate-y-1 hover:shadow-md focusable" target="_blank">
+                    <i class="fab fa-github"></i>
+                    GitHub: Starlink-Taipei
+                </a>
+                <a href="mailto:113753207@g.nccu.edu.tw" class="contact-link inline-flex items-center gap-2 text-success-500 no-underline py-3 px-5 bg-white border border-success-300 rounded-lg transition-all duration-300 font-medium hover:text-white hover:bg-success-500 hover:no-underline hover:-translate-y-1 hover:shadow-md focusable">
+                    <i class="fas fa-envelope"></i>
+                    Email: 113753207@g.nccu.edu.tw
+                </a>
+            </div>
+            
+            <p class="mt-6 font-semibold text-success-600 dark:text-success-400">特別歡迎資料科學、衛星通訊、或網路工程背景的朋友一起交流討論！</p>
+        </div>
+    </div>
+
+    <!-- 技術細節 -->
+    <div class="content-card bg-white dark:bg-gray-800 rounded-xl p-10 mb-8 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <h2 class="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-xl">
+                <i class="fas fa-code"></i>
+            </div>
+            技術架構
+        </h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <div class="tech-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="p-8">
+                    <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                        <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-lg">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        後端技術
+                    </h5>
+                    <ul class="space-y-0">
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fab fa-python w-5 text-center text-brand-500"></i> Python 3.8+
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-globe w-5 text-center text-brand-500"></i> Flask Web Framework
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-satellite w-5 text-center text-brand-500"></i> Skyfield 軌道計算
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-chart-bar w-5 text-center text-brand-500"></i> Pandas 數據處理
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-chart-line w-5 text-center text-brand-500"></i> Plotly 視覺化
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tech-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full">
+                <div class="p-8">
+                    <h5 class="flex items-center gap-3 text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                        <div class="w-10 h-10 bg-brand-500 text-white rounded-lg flex items-center justify-center text-lg">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        前端技術
+                    </h5>
+                    <ul class="space-y-0">
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fab fa-html5 w-5 text-center text-brand-500"></i> HTML5 & CSS3
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fab fa-js-square w-5 text-center text-brand-500"></i> JavaScript ES6+
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fab fa-bootstrap w-5 text-center text-brand-500"></i> Tailwind CSS
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-mobile-alt w-5 text-center text-brand-500"></i> 響應式設計
+                        </li>
+                        <li class="py-3 border-b border-gray-200 dark:border-gray-600 flex items-center gap-3 text-gray-600 dark:text-gray-400 transition-all duration-250 hover:text-brand-500 hover:pl-2 last:border-b-0">
+                            <i class="fas fa-chart-pie w-5 text-center text-brand-500"></i> 互動式圖表
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/about.js') }}"></script>
+{% endblock %} 

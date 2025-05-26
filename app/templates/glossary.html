@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}專有名詞解釋 - Starlink 台北衛星覆蓋分析中心{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">首頁</a></li>
+        <li class="breadcrumb-item active">專有名詞解釋</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .term-card {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 0 10px 10px 0;
+        transition: all 0.3s ease;
+    }
+    
+    .term-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .term-title {
+        color: #4a5568;
+        font-weight: 600;
+        font-size: 1.3em;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .term-english {
+        color: #667eea;
+        font-size: 0.9em;
+        font-weight: 400;
+        font-style: italic;
+    }
+    
+    .term-description {
+        color: #6c757d;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+    
+    .term-example {
+        background: rgba(102, 126, 234, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        color: #495057;
+    }
+    
+    .term-icon {
+        color: #667eea;
+        font-size: 1.2em;
+    }
+    
+    .search-box {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 1.1em;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .search-box:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .category-filter {
+        margin-bottom: 30px;
+    }
+    
+    .filter-btn {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid #667eea;
+        color: #667eea;
+        padding: 8px 16px;
+        border-radius: 20px;
+        margin: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn.active,
+    .filter-btn:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .one-sentence-def {
+        font-weight: 500;
+        margin-bottom: 15px;
+        font-size: 1.05em;
+        color: #333; /* Darker text for the main definition */
+    }
+
+    .term-details-section {
+        margin-top: 15px;
+        padding-left: 15px;
+        border-left: 2px solid #667eea; /* Accent color border */
+        background-color: rgba(102, 126, 234, 0.05); /* Very light accent background */
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .term-detail-title {
+        font-weight: 600;
+        color: #667eea; /* Accent color for titles */
+        font-size: 1em;
+        margin-bottom: 8px;
+    }
+
+    .term-details-section p {
+        font-size: 0.95em;
+        line-height: 1.7;
+        color: #555; /* Slightly lighter text for details */
+        margin-bottom: 5px; /* Adjust spacing between paragraphs within details */
+    }
+    .term-details-section p strong { 
+        font-weight: 500;
+        color: #444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="text-center mb-4">
+        <h1><i class="fas fa-book term-icon"></i> 衛星通訊專有名詞解釋</h1>
+        <p class="text-muted">深入了解 Starlink 衛星覆蓋分析中的關鍵術語</p>
+    </div>
+    
+    <!-- 搜尋框 -->
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜尋專有名詞...">
+    
+    <!-- 分類篩選 -->
+    <div class="category-filter text-center">
+        <button class="filter-btn active" data-category="all">全部</button>
+        <button class="filter-btn" data-category="satellite">衛星技術</button>
+        <button class="filter-btn" data-category="coverage">覆蓋分析</button>
+        <button class="filter-btn" data-category="data">數據格式</button>
+        <button class="filter-btn" data-category="antenna">天線技術</button>
+    </div>
+    
+    <!-- 專有名詞列表 -->
+    <div id="termsContainer">
+        <!-- Handover -->
+        <div class="term-card" data-category="satellite" data-keywords="handover 衛星切換 切換">
+            <div class="term-title">
+                <i class="fas fa-exchange-alt term-icon"></i>
+                Handover（衛星切換）
+                <span class="term-english">Satellite Handover</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>地面終端在前一顆衛星「下地平線」前，預先鎖定並切換到下一顆可用衛星的過程。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>- 切換觸發：當前衛星 仰角 &lt; &theta;<sub>trigger</sub>（Starlink 預設約 15&deg;）。<br>- 預切換週期：Starlink 以 4 ~ 7 s 週期輪詢鄰近星，挑選 SNR 與 路徑損耗 最佳者。<br>- 通信協定：使用 make-before-break（雙鏈路並存）避免丟包。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>衛星軌道密度、終端天線掃描速率、旁遮蔽物方位、天氣（雨衰減增大時可能提前切）。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>端側平均 每 50 ~ 110 s 完成一次切換；極端陰雨天切換次數可增至 35 ~ 40 次/小時。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coverage -->
+        <div class="term-card" data-category="coverage" data-keywords="coverage 覆蓋率 覆蓋">
+            <div class="term-title">
+                <i class="fas fa-globe term-icon"></i>
+                覆蓋率（Coverage）
+                <span class="term-english">Coverage Percentage</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>指定時間窗內，目標區域天空中 至少一顆衛星可見 的時間比例。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>- 公式：Coverage = (&Sigma; 可見秒數) / (總分析秒數)。<br>- 計算需設定最低仰角門檻 &theta;<sub>min</sub>（常用 25&deg;）。<br>- 可配合 Monte-Carlo 隨機時標或 TLE 批量推算。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>緯度（越高越少）、星座層級數/傾角、地形遮蔽、最低仰角設定。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>以 &theta;<sub>min</sub> = 25&deg; 模擬，2025 Q2 Starlink 對台覆蓋率 99.54 %；若 &theta;<sub>min</sub> 提高至 35&deg;，覆蓋率降至 92 %。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Elevation Angle -->
+        <div class="term-card" data-category="coverage" data-keywords="elevation 仰角 角度">
+            <div class="term-title">
+                <i class="fas fa-angle-up term-icon"></i>
+                仰角（Elevation Angle）
+                <span class="term-english">Elevation Angle</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>衛星-地面視線與地平面夾角；0&deg; 在地平線，90&deg; 在頭頂天頂。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>Elevation = arctan( h / d )，h 為衛星高度投影，d 為斜距水平投影。越低 自由空間損耗 + 大氣折射衰減 越大。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>觀測緯度、衛星即時軌跡、地形遮蔽角。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>Starlink 建議 &theta;<sub>min</sub> &ge; 25&deg;；臺北平均可用仰角 70 ~ 80&deg; 時鏈路品質最佳。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TLE -->
+        <div class="term-card" data-category="data" data-keywords="tle two-line element 軌道參數">
+            <div class="term-title">
+                <i class="fas fa-satellite-dish term-icon"></i>
+                TLE（Two-Line Element）
+                <span class="term-english">Two-Line Element Set</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>兩行 69-byte ASCII 文本，記錄「某一歷元」衛星軌道六參數與其衍生質量項。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>- 內容：Epoch、Inclination、RAAN、Eccentricity、Argument-of-Perigee、Mean-Anomaly、Mean-Motion…<br>- 軌道預報：SGP4/SDP4 模型，短期（&lt; 2 週）誤差 &lt; 1 km。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>TLE 更新頻率（Starlink 官檔每日 3-6 次）、太陽輻射壓＋氣動阻力估計誤差。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>每日抓最新版 TLE 可將可見衛星預報誤差壓在 &plusmn;5 s / &plusmn;0.3&deg; 內。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visible Satellites -->
+        <div class="term-card" data-category="coverage" data-keywords="visible satellites 可見衛星 衛星數量">
+            <div class="term-title">
+                <i class="fas fa-eye term-icon"></i>
+                可見衛星數量
+                <span class="term-english">Visible Satellite Count</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>在設定仰角門檻以上，同時位於可見空域的衛星總數。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>對每一分鐘/秒的時間戳，將 TLE 推算位置 &rarr; 濾掉 Elevation &lt; &theta;<sub>min</sub> &rarr; 計數。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>星座密度、&theta;<sub>min</sub>、地形遮蔽、部分星下行干涉限制（航班 / 無線電靜默區）。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>&theta;<sub>min</sub> 25&deg; 時平均 28 ~ 32 顆 同步可見；高峰（清晨）可達 35 顆+。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimal Elevation -->
+        <div class="term-card" data-category="coverage" data-keywords="optimal elevation 最佳仰角 最佳連接">
+            <div class="term-title">
+                <i class="fas fa-crosshairs term-icon"></i>
+                最佳連接仰角
+                <span class="term-english">Optimal Connection Elevation</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>綜合鏈路 Budget、雨衰減、天線波束效率後，能取得最高 throughput 的仰角範圍。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>- 需對 SNR(&theta;)、BeamGain(&theta;)、雨衰 &Delta;L<sub>rain</sub>(&theta;) 建立經驗/理論模型<br>- 求最大化 C/(N+I) 或 E<sub>b</sub>/N<sub>0</sub> 得&theta;<sub>opt</sub>；Starlink 終端內建此動態演算法。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>降雨率、終端指向誤差、前後遮蔽物。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>長期統計 &theta;<sub>opt</sub> 落在 70 ~ 80&deg;；颱風季午後驟雨時 &theta;<sub>opt</sub> 可能小幅下降（避開最厚雲層）。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orbital Period -->
+        <div class="term-card" data-category="satellite" data-keywords="orbital period 軌道周期 周期">
+            <div class="term-title">
+                <i class="fas fa-clock term-icon"></i>
+                軌道周期
+                <span class="term-english">Orbital Period</span>
+            </div>
+            <div class="term-description">
+                <p class="one-sentence-def"><strong>一句話定義：</strong>衛星繞地球一圈所需時間；近地軌道（550 km）Starlink 約 95 ~ 96 min。</p>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">計算／物理背景</h5>
+                    <p>Kepler 第三定律：T = 2&pi; &radic;(a&sup3;/&mu;)；a = (R<sub>&oplus;</sub> + h)，&mu; = 3.986 &times; 10&sup1;&sup4; m&sup3;/s&sup2;。550 km &rarr; a &asymp; 6921 km &rarr; T &asymp; 95.3 min。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">影響因素</h5>
+                    <p>軌道高度、地球赤道形扁率、大氣阻力拖慢平均運行週期（需偶爾電動推補燃）。</p>
+                </div>
+                <div class="term-details-section">
+                    <h5 class="term-detail-title">Starlink-Taipei 實例</h5>
+                    <p>同一顆衛星每天掠過臺北 &asymp; 15 ~ 16 次；相鄰通過間隔約 90 min。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phased Array Antenna -->
+        <div class="term-card" data-category="antenna" data-keywords="phased array 相控陣列 天線">
+            <div class="term-title">
+                <i class="fas fa-broadcast-tower term-icon"></i>
+                相控陣列天線
+                <span class="term-english">Phased Array Antenna</span>
+            </div>
+            <div class="term-description">
+                能夠電子式調整波束方向的天線技術，無需物理轉動。Starlink 用戶終端使用相控陣列天線
+                快速追蹤移動中的衛星，實現無縫的衛星切換和穩定的連接。
+            </div>
+            <div class="term-example">
+                <strong>技術優勢：</strong> 相控陣列天線可在毫秒級時間內調整指向，
+                確保在衛星快速移動時維持穩定連接。
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBox = document.getElementById('searchBox');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const termCards = document.querySelectorAll('.term-card');
+    
+    // 搜尋功能
+    searchBox.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        termCards.forEach(card => {
+            const keywords = card.dataset.keywords.toLowerCase();
+            const title = card.querySelector('.term-title').textContent.toLowerCase();
+            const description = card.querySelector('.term-description').textContent.toLowerCase();
+            
+            if (keywords.includes(searchTerm) || title.includes(searchTerm) || description.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+    
+    // 分類篩選功能
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // 更新按鈕狀態
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const category = this.dataset.category;
+            
+            termCards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // 清空搜尋框
+            searchBox.value = '';
+        });
+    });
+});
+</script>
+{% endblock %} 

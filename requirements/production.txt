@@ -1,0 +1,7 @@
+-r base.txt
+
+gunicorn # Or uwsgi, depending on final choice
+
+# Add any other production-specific (lightweight) dependencies here
+# For example, if using a specific database driver not in base.txt
+# or a specific monitoring tool client library. 

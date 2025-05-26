@@ -1,0 +1,38 @@
+# Git files
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+*.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Test reports and coverage
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Build artifacts (if any)
+build/
+dist/
+*.egg-info/
+
+# Conda environment file (if not used for docker build)
+# environment.yml
+
+# Local output/static files if not committed or copied into image explicitly
+# app/static/ # Depending on whether you want to bake these into the image or mount them 

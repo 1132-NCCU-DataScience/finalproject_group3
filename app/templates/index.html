@@ -1,0 +1,849 @@
+{% extends "base.html" %}
+
+{% block title %}Starlink 台北衛星覆蓋分析中心{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        /* Inherits gradient from base.html, can override if needed */
+    }
+
+    .content-container {
+        /* background: rgba(255, 255, 255, 0.98); */ /* Original */
+        background: #ffffff; /* Cleaner solid white */
+        border-radius: 24px; /* Softer radius */
+        padding: clamp(20px, 5vw, 40px); /* Responsive padding */
+        /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); */ /* Original */
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1); /* Softer shadow */
+        backdrop-filter: blur(12px); /* Keep if background is semi-transparent */
+        margin-bottom: 40px;
+    }
+
+    .hero-banner {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); /* Lighter gradient */
+        border-radius: 18px; /* Consistent with other elements */
+        padding: clamp(30px, 6vw, 50px);
+        text-align: center;
+        margin-bottom: 40px;
+        border: 1px solid rgba(102, 126, 234, 0.2); /* Subtle border */
+    }
+    
+    .hero-title {
+        font-size: clamp(2.2em, 5vw, 3em); /* Responsive font size */
+        font-weight: 700;
+        /* color: #4a5568; */ /* Original */
+        color: #334155; /* Tailwind slate-700, more modern */
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .hero-subtitle {
+        font-size: clamp(1.1em, 2.5vw, 1.35em);
+        /* color: #6c757d; */ /* Original */
+        color: #64748b; /* Tailwind slate-500 */
+        margin-bottom: 25px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px; /* Increased gap */
+        background: #10b981; /* Tailwind emerald-500, more vibrant green */
+        color: white;
+        padding: 8px 18px; /* Adjusted padding */
+        border-radius: 50px; /* Pill shape */
+        font-size: 0.9em; /* Slightly smaller */
+        font-weight: 500;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); /* Subtle shadow for the badge */
+    }
+    
+    .pulse {
+        width: 10px; /* Larger pulse */
+        height: 10px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 1.8s infinite; /* Slightly faster pulse */
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    
+    .quick-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Slightly larger minmax */
+        gap: 25px; /* Increased gap */
+        margin-bottom: 40px;
+    }
+    
+    .nav-card {
+        background: #f8fafc; /* Tailwind slate-50, very light gray */
+        border-radius: 16px; /* Softer radius */
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+        border: 1px solid #e2e8f0; /* Tailwind slate-200 border */
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-card:hover {
+        transform: translateY(-6px); /* More pronounced lift */
+        box-shadow: 0 12px 28px rgba(100, 116, 139, 0.12), 0 2px 8px rgba(100, 116, 139, 0.08); /* Enhanced shadow */
+        border-color: #667eea; 
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .nav-icon {
+        font-size: 2.8em; /* Slightly larger icons */
+        color: #667eea;
+        margin-bottom: 18px; /* Increased margin */
+        transition: transform 0.3s ease;
+    }
+
+    .nav-card:hover .nav-icon {
+        transform: scale(1.1); /* Icon zoom on hover */
+    }
+    
+    .nav-title {
+        font-size: 1.25em; /* Slightly larger */
+        font-weight: 600;
+        /* color: #4a5568; */
+        color: #334155; /* Tailwind slate-700 */
+        margin-bottom: 10px;
+    }
+    
+    .nav-description {
+        /* color: #6c757d; */
+        color: #64748b; /* Tailwind slate-500 */
+        font-size: 0.95em; /* Slightly larger */
+        line-height: 1.5;
+    }
+    
+    .analysis-section {
+        background: #f8fafc; /* Tailwind slate-50 */
+        border-radius: 18px; /* Consistent radius */
+        padding: clamp(25px, 4vw, 35px);
+        margin-bottom: 40px;
+        border-left: 4px solid #667eea; /* Keep accent border */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    
+    .section-title {
+        font-size: clamp(1.4em, 3.5vw, 1.75em); /* Responsive */
+        font-weight: 600;
+        /* color: #4a5568; */
+        color: #1e293b; /* Tailwind slate-800, darker for titles */
+        margin-bottom: 25px; /* Increased margin */
+        display: flex;
+        align-items: center;
+        gap: 14px; /* Increased gap */
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted minmax */
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: rgba(102, 126, 234, 0.08); /* Slightly more pronounced background */
+        border-radius: 14px; /* Consistent radius */
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(102, 126, 234, 0.1); /* Subtle border */
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12); /* Softer shadow */
+    }
+    
+    .stat-value {
+        font-size: clamp(2em, 5vw, 2.5em); /* Responsive */
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 8px; /* Increased margin */
+    }
+    
+    .stat-label {
+        /* color: #6c757d; */
+        color: #475569; /* Tailwind slate-600 */
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+    
+    .analysis-controls {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px; /* Increased padding */
+        margin-bottom: 25px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06); /* Softer shadow */
+    }
+    
+    .form-group {
+        margin-bottom: 25px; /* Increased margin */
+    }
+    
+    .form-label {
+        font-weight: 600;
+        /* color: #4a5568; */
+        color: #334155; /* Tailwind slate-700 */
+        margin-bottom: 10px; /* Increased margin */
+        display: block;
+        font-size: 1.05em; /* Slightly larger */
+    }
+    
+    .form-control {
+        border: 1px solid #cbd5e1; /* Tailwind slate-300 */
+        border-radius: 10px; /* Softer radius */
+        padding: 14px 18px; /* Increased padding */
+        font-size: 1em;
+        transition: all 0.3s ease;
+        width: 100%; /* Ensure it takes full width */
+        background-color: #f8fafc; /* Light background for input */
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); /* Adjusted focus shadow */
+        outline: none;
+        background-color: #ffffff;
+    }
+    
+    .btn-analyze {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 12px; /* Softer radius */
+        padding: 16px 32px; /* Increased padding */
+        font-size: 1.15em; /* Slightly larger font */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        width: 100%;
+        display: flex; /* For icon alignment */
+        align-items: center;
+        justify-content: center;
+        gap: 10px; /* Space for icon */
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25); /* Subtle shadow */
+    }
+    
+    .btn-analyze:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-3px); /* More lift */
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); /* Enhanced hover shadow */
+    }
+    
+    .btn-analyze:disabled {
+        background: #d1d5db; /* Tailwind gray-300 */
+        color: #6b7280; /* Tailwind gray-500 text */
+        cursor: not-allowed;
+        opacity: 1; /* Ensure disabled state is clear */
+        box-shadow: none;
+    }
+    
+    .progress-section {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px; /* Increased padding */
+        margin-bottom: 25px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+    
+    .progress-container {
+        background: #e5e7eb; /* Tailwind gray-200 */
+        border-radius: 12px; /* Softer radius */
+        height: 32px; /* Increased height */
+        overflow: hidden;
+        margin-bottom: 18px; /* Increased margin */
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9em;
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+        width: 0%;
+    }
+    
+    .status-message {
+        font-size: 1.1em;
+        color: #374151; /* Tailwind gray-700 */
+        text-align: center;
+        margin-bottom: 15px;
+        font-weight: 500;
+    }
+    
+    .error-message {
+        background: rgba(239, 68, 68, 0.1); /* Tailwind red-500 with opacity */
+        border: 1px solid #ef4444; /* Tailwind red-500 */
+        color: #b91c1c; /* Tailwind red-700 */
+        padding: 18px; /* Increased padding */
+        border-radius: 10px;
+        margin-top: 20px;
+        display: none;
+        font-size: 0.95em;
+    }
+    
+    .results-section {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+    
+    .results-links {
+        display: none;
+        margin-top: 20px;
+    }
+    
+    .results-links ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .results-links li {
+        margin-bottom: 12px; /* Increased margin */
+    }
+    
+    .results-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px; /* Increased gap for icon */
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 10px 15px; /* Adjusted padding */
+        border-radius: 8px; /* Softer radius */
+        transition: all 0.3s ease;
+        background-color: rgba(102, 126, 234, 0.08); /* Light background for links */
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    .results-links a:hover {
+        background: rgba(102, 126, 234, 0.15);
+        text-decoration: none;
+        color: #5a67d8; /* Darker purple on hover */
+        border-color: rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.1);
+    }
+    
+    .info-box {
+        background: rgba(59, 130, 246, 0.08); /* Tailwind blue-500 with opacity */
+        border-left: 4px solid #3b82f6; /* Tailwind blue-500 */
+        padding: 18px; /* Increased padding */
+        border-radius: 0 10px 10px 0; /* Softer radius */
+        margin: 25px 0; /* Increased margin */
+        font-size: 0.95em;
+        color: #1e3a8a; /* Tailwind blue-800 */
+    }
+    .info-box strong {
+        color: #1d4ed8; /* Tailwind blue-700 */
+    }
+    
+    .recent-analysis {
+        background: rgba(16, 185, 129, 0.08); /* Tailwind emerald-500 with opacity */
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 25px;
+        border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    
+    .recent-analysis h5 {
+        color: #059669; /* Tailwind emerald-600 */
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .recent-analysis p {
+        font-size: 0.95em;
+        color: #374151; /* Tailwind gray-700 */
+        margin-bottom: 8px;
+    }
+    .recent-analysis strong {
+        font-weight: 500;
+        color: #1f2937; /* Tailwind gray-800 */
+    }
+    
+    @media (max-width: 992px) { /* Adjusted breakpoint for better tablet layout */
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2em; /* Adjusted for smaller screens */
+            flex-direction: column;
+            gap: 10px;
+        }
+        .hero-subtitle {
+            font-size: 1em;
+        }
+        
+        .quick-nav {
+            grid-template-columns: 1fr; /* Single column on mobile */
+            gap: 20px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr); /* Two columns on mobile */
+            gap: 15px;
+        }
+        .stat-card {
+            padding: 15px;
+        }
+        .stat-value {
+            font-size: 1.8em;
+        }
+
+        .analysis-controls, .progress-section, .results-section, .analysis-section {
+            padding: 20px;
+        }
+        .form-control {
+            padding: 12px 15px;
+        }
+        .btn-analyze {
+            padding: 14px 25px;
+            font-size: 1.1em;
+        }
+        .section-title {
+            font-size: 1.3em;
+        }
+    }
+
+    @media (max-width: 480px) { /* Specific styles for very small screens */
+        .stats-grid {
+            grid-template-columns: 1fr; /* Single column for stats on very small screens */
+        }
+        .hero-title .satellite-icon {
+            font-size: 0.8em; /* Adjust icon size within hero title on small screens */
+        }
+        .live-indicator {
+            padding: 6px 14px;
+            font-size: 0.8em;
+        }
+         .section-title {
+            font-size: 1.2em;
+            gap: 10px;
+        }
+         .section-title i {
+            font-size: 0.9em;
+        }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <!-- 英雄橫幅 -->
+    <div class="hero-banner">
+        <div class="hero-title">
+            <i class="fas fa-satellite satellite-icon"></i>
+            Starlink 台北衛星覆蓋分析中心
+        </div>
+        <div class="hero-subtitle">
+            專為數據科學研究設計的即時衛星覆蓋分析平台
+        </div>
+        <div class="live-indicator">
+            <div class="pulse"></div>
+            <span id="live-status-text">即時分析結果</span>
+        </div>
+        <p class="text-muted" style="font-size: 0.95em; color: #64748b;">
+            提供準確、可視化的 Starlink 衛星覆蓋分析，助力衛星通訊研究與網路規劃決策
+        </p>
+    </div>
+    
+    <!-- 快速導覽 -->
+    <div class="quick-nav">
+        <a href="/glossary" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-book-open"></i> <!-- Changed icon -->
+            </div>
+            <div class="nav-title">專有名詞解釋</div>
+            <div class="nav-description">了解衛星通訊相關術語與定義</div>
+        </a>
+        
+        <a href="/data-explanation" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-database"></i> <!-- Changed icon -->
+            </div>
+            <div class="nav-title">資料說明</div>
+            <div class="nav-description">深入了解分析方法與資料來源細節</div>
+        </a>
+        
+        <a href="/about" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="nav-title">關於專案</div>
+            <div class="nav-description">專案動機、方法論與技術架構</div>
+        </a>
+        
+        <a href="#analysis" class="nav-card">
+            <div class="nav-icon">
+                <i class="fas fa-play-circle"></i>
+            </div>
+            <div class="nav-title">開始分析</div>
+            <div class="nav-description">執行客製化的即時衛星覆蓋分析</div>
+        </a>
+    </div>
+    
+    <!-- 即時統計數據 -->
+    <div class="analysis-section">
+        <div class="section-title">
+            <i class="fas fa-chart-bar"></i>
+            即時統計數據
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="avg-visible-satellites">{{ "%.1f"|format(stats.avg_visible_satellites) }}</div>
+                <div class="stat-label">平均可見衛星</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="coverage-percentage">{{ "%d"|format(stats.coverage_percentage) }}%</div>
+                <div class="stat-label">覆蓋率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-elevation">{{ "%.1f"|format(stats.avg_elevation) }}°</div>
+                <div class="stat-label">平均仰角</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="max-visible-satellites">{{ "%d"|format(stats.max_visible_satellites) }}</div>
+                <div class="stat-label">最大可見衛星</div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong><i class="fas fa-check-circle" style="color: #3b82f6;"></i> 台北地區表現優異：</strong>
+            Starlink 在台北地區提供卓越的覆蓋品質，平均可見衛星數量遠超維持穩定連接所需的最低要求。
+            高仰角連接確保了優異的信號品質和較少的大氣干擾。
+        </div>
+        
+        <div class="recent-analysis">
+            <h5><i class="fas fa-history"></i> 最近分析資訊</h5> <!-- Changed icon -->
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>分析時長：</strong> <span id="analysis-duration-display">{{ "%d"|format(stats.analysis_duration_minutes) }} 分鐘</span></p>
+                    <p><strong>最大仰角：</strong> <span id="max-elevation-display">{{ "%.1f"|format(stats.max_elevation) }}°</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>觀測位置：</strong> <span id="observer-location-display">{{ stats.observer_location_str }}</span></p>
+                    <p><strong>最後更新：</strong> <span id="last-updated-time-display">{{ stats.last_updated_time }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 分析控制區 -->
+    <div class="analysis-section" id="analysis">
+        <div class="section-title">
+            <i class="fas fa-cogs"></i> <!-- Changed icon -->
+            衛星覆蓋分析設定
+        </div>
+        
+        <div class="analysis-controls">
+            <div class="form-group">
+                <label for="analysis-duration" class="form-label">
+                    <i class="fas fa-stopwatch"></i> 分析時長 (分鐘) <!-- Changed icon -->
+                </label>
+                <input type="number" 
+                       id="analysis-duration" 
+                       class="form-control" 
+                       value="30" 
+                       min="5" 
+                       max="240" 
+                       placeholder="輸入 5 至 240 分鐘">
+                <small class="text-muted" style="display: block; margin-top: 8px; font-size: 0.85em;">建議：快速測試 10 分鐘，標準分析 30 分鐘，深度分析 60 分鐘。</small>
+            </div>
+            
+            <button id="start-analysis-button" class="btn-analyze">
+                <i class="fas fa-rocket"></i> 開始分析
+            </button>
+        </div>
+        
+        <div class="progress-section" id="progress-section-container" style="display: none;"> <!-- Initially hidden -->
+            <div class="status-message" id="status-message">{{ analysis_status.message }}</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">{{ analysis_status.progress }}%</div>
+            </div>
+            <div class="error-message" id="error-message-display">{{ analysis_status.error_message }}</div>
+        </div>
+        
+        <div class="results-section" id="results-section-container" style="display: none;"> <!-- Initially hidden -->
+            <h5 style="font-weight:600; color: #1e293b; margin-bottom:15px;"><i class="fas fa-folder-open"></i> 分析結果</h5> <!-- Changed icon -->
+            <p class="text-muted" style="font-size: 0.95em; margin-bottom:20px;">分析完成後，您可以下載以下格式的結果：</p>
+            
+            <div class="results-links" id="output-links">
+                <ul id="analysis-output-list">
+                    <!-- 動態生成的下載連結 -->
+                </ul>
+            </div>
+            
+            <div class="info-box" style="margin-top: 25px;">
+                <strong><i class="fas fa-lightbulb" style="color: #3b82f6;"></i> 提示：</strong>
+                分析結果包含互動式 HTML 報告、CSV 原始資料和 JSON 統計摘要。
+                您可以使用這些資料進行進一步的研究分析。
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startButton = document.getElementById('start-analysis-button');
+    const durationInput = document.getElementById('analysis-duration');
+    const progressBar = document.getElementById('progress-bar');
+    const statusMessage = document.getElementById('status-message');
+    const errorMessageDisplay = document.getElementById('error-message-display');
+    const outputLinksDiv = document.getElementById('output-links');
+    const outputList = document.getElementById('analysis-output-list');
+    let statusInterval;
+
+    // DOM elements for stats update
+    const avgVisibleSatellitesEl = document.getElementById('avg-visible-satellites');
+    const coveragePercentageEl = document.getElementById('coverage-percentage');
+    const avgElevationEl = document.getElementById('avg-elevation');
+    const maxVisibleSatellitesEl = document.getElementById('max-visible-satellites');
+    const analysisDurationDisplayEl = document.getElementById('analysis-duration-display');
+    const maxElevationDisplayEl = document.getElementById('max-elevation-display');
+    const observerLocationDisplayEl = document.getElementById('observer-location-display');
+    const lastUpdatedTimeDisplayEl = document.getElementById('last-updated-time-display');
+
+    // Containers for progress and results
+    const progressSectionContainer = document.getElementById('progress-section-container');
+    const resultsSectionContainer = document.getElementById('results-section-container');
+
+
+    function updateStatsDisplay(stats) {
+        if (!stats) return;
+        avgVisibleSatellitesEl.textContent = parseFloat(stats.avg_visible_satellites || 0).toFixed(1);
+        coveragePercentageEl.textContent = \`\${parseInt(stats.coverage_percentage || 0)}%\`;
+        avgElevationEl.textContent = \`\${parseFloat(stats.avg_elevation || 0).toFixed(1)}°\`;
+        maxVisibleSatellitesEl.textContent = parseInt(stats.max_visible_satellites || 0);
+        if (analysisDurationDisplayEl) analysisDurationDisplayEl.textContent = \`\${parseInt(stats.analysis_duration_minutes || 0)} 分鐘\`;
+        if (maxElevationDisplayEl) maxElevationDisplayEl.textContent = \`\${parseFloat(stats.max_elevation || 0).toFixed(1)}°\`;
+        if (stats.observer_location && observerLocationDisplayEl) {
+            observerLocationDisplayEl.textContent = \`\${parseFloat(stats.observer_location.lat || 25.03).toFixed(2)}°N, \${parseFloat(stats.observer_location.lon || 121.57).toFixed(2)}°E\`;
+        }
+        if (lastUpdatedTimeDisplayEl) lastUpdatedTimeDisplayEl.textContent = stats.last_updated_time || new Date().toLocaleString('zh-TW');
+    }
+    
+    function updateAnalysisStatus() {
+        fetch('/analysis_status')
+            .then(response => response.json())
+            .then(data => {
+                statusMessage.textContent = data.message;
+                progressBar.style.width = data.progress + '%';
+                progressBar.textContent = data.progress + '%';
+
+                if (data.error_message) {
+                    errorMessageDisplay.textContent = data.error_message;
+                    errorMessageDisplay.style.display = 'block';
+                } else {
+                    errorMessageDisplay.style.display = 'none';
+                }
+
+                if (data.running || data.progress > 0 && data.progress < 100) { // Show progress if running or progress is partial
+                    progressSectionContainer.style.display = 'block';
+                }
+
+                if (data.running) {
+                    startButton.disabled = true;
+                    durationInput.disabled = true;
+                    document.getElementById('live-status-text').textContent = "分析進行中...";
+                } else {
+                    startButton.disabled = false;
+                    durationInput.disabled = false;
+                    document.getElementById('live-status-text').textContent = "即時分析結果";
+                    
+                    if (statusInterval) {
+                        // Clear interval if analysis is complete (success or fail) or not running
+                        if (!data.running && (data.progress === 100 || data.progress === 0)) {
+                             clearInterval(statusInterval);
+                             statusInterval = null;
+                        }
+                    }
+                    if (data.last_run_success && data.progress === 100 && data.latest_stats) {
+                        updateStatsDisplay(data.latest_stats);
+                         progressSectionContainer.style.display = 'block'; // Keep progress visible
+                    } else if (!data.last_run_success && data.progress === 0 && !data.running) {
+                        // If failed and not running, can hide progress or show specific message
+                        // progressSectionContainer.style.display = 'none';
+                    }
+                }
+                
+                if (data.output_files && data.output_files.length > 0 && (data.progress === 100 || !data.running)) {
+                    outputList.innerHTML = '';
+                    data.output_files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.href = \`/static/\${file}?v=\${new Date().getTime()}\`; // Cache busting
+                        link.textContent = file.split('/').pop(); // Show only filename
+                        link.target = '_blank';
+                        
+                        const icon = document.createElement('i');
+                        icon.className = 'fas'; // Base class
+                        if (file.includes('.html')) {
+                            icon.classList.add('fa-file-alt'); // More appropriate icon
+                        } else if (file.includes('.csv')) {
+                            icon.classList.add('fa-file-csv');
+                        } else if (file.includes('.json')) {
+                            icon.classList.add('fa-file-code');
+                        } else {
+                            icon.classList.add('fa-file');
+                        }
+                        
+                        link.insertBefore(icon, link.firstChild);
+                        listItem.appendChild(link);
+                        outputList.appendChild(listItem);
+                    });
+                    outputLinksDiv.style.display = 'block';
+                    resultsSectionContainer.style.display = 'block'; // Show results container
+                } else {
+                    // If no output files or analysis not complete, ensure results section is hidden or shows a placeholder
+                    // resultsSectionContainer.style.display = 'none'; 
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching status:', error);
+                statusMessage.textContent = '無法獲取狀態';
+                progressSectionContainer.style.display = 'block'; // Show progress even on error
+            });
+    }
+
+    startButton.addEventListener('click', () => {
+        const duration = parseInt(durationInput.value);
+        if (isNaN(duration) || duration < 5 || duration > 240) {
+            // More user-friendly error display for duration
+            errorMessageDisplay.textContent = '分析時間必須介於 5 到 240 分鐘之間。';
+            errorMessageDisplay.style.display = 'block';
+            progressSectionContainer.style.display = 'block'; // Show section to display error
+            statusMessage.textContent = '輸入錯誤';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            return;
+        }
+
+        startButton.disabled = true;
+        durationInput.disabled = true;
+        statusMessage.textContent = '正在啟動分析...';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        errorMessageDisplay.textContent = '';
+        errorMessageDisplay.style.display = 'none';
+        outputLinksDiv.style.display = 'none';
+        outputList.innerHTML = '';
+        resultsSectionContainer.style.display = 'none'; // Hide results section initially
+        progressSectionContainer.style.display = 'block'; // Show progress section
+
+        fetch('/start_analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ duration: duration }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusMessage.textContent = data.message;
+                if (!statusInterval) {
+                    statusInterval = setInterval(updateAnalysisStatus, 2000);
+                }
+                 // Initial call to get status immediately after start
+                updateAnalysisStatus();
+            } else {
+                statusMessage.textContent = \`啟動失敗: \${data.message}\`;
+                errorMessageDisplay.textContent = data.message;
+                errorMessageDisplay.style.display = 'block';
+                startButton.disabled = false;
+                durationInput.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error starting analysis:', error);
+            statusMessage.textContent = '啟動分析時發生錯誤';
+            errorMessageDisplay.textContent = '無法連接到伺服器或啟動分析失敗。';
+            errorMessageDisplay.style.display = 'block';
+            startButton.disabled = false;
+            durationInput.disabled = false;
+        });
+    });
+
+    // Smooth scroll to analysis section
+    document.querySelectorAll('a[href="#analysis"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const analysisSection = document.getElementById('analysis');
+            if (analysisSection) {
+                analysisSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start' // Scroll to the top of the section
+                });
+            }
+        });
+    });
+
+    // Initial status update and UI setup
+    fetch('/analysis_status')
+        .then(response => response.json())
+        .then(data => {
+            updateAnalysisStatus(); // Process initial status
+            if (data.running) {
+                if (!statusInterval) {
+                    statusInterval = setInterval(updateAnalysisStatus, 2000);
+                }
+            } else { // Not running
+                if (data.progress === 100 && data.output_files && data.output_files.length > 0) {
+                    // If completed and has files, ensure progress and results are shown
+                    progressSectionContainer.style.display = 'block';
+                    resultsSectionContainer.style.display = 'block';
+                } else if (data.progress > 0 && data.progress < 100) {
+                    // If partially completed (e.g. page reload during analysis), show progress
+                     progressSectionContainer.style.display = 'block';
+                } else {
+                    // If not running, not completed, no partial progress (e.g. fresh page load, no prior analysis)
+                    // progressSectionContainer.style.display = 'none'; // Keep hidden if no active/recent progress
+                    // resultsSectionContainer.style.display = 'none'; // Keep hidden
+                }
+            }
+            if (data.latest_stats) { // Always try to update stats if available
+                updateStatsDisplay(data.latest_stats);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching initial status:', error);
+            if(statusMessage) statusMessage.textContent = '無法連接伺服器獲取初始狀態。';
+            // Optionally show progress container with an error message
+            // if(progressSectionContainer) progressSectionContainer.style.display = 'block';
+        });
+});
+</script>
+{% endblock %} 

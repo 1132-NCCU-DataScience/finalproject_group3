@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -21,6 +20,42 @@ wheels/
 .installed.cfg
 *.egg
 
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Output files
+output/202*/
+output/*.tle
+output/starlink*.tle
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
 # R
 .Rproj.user
 .Rhistory
@@ -29,32 +64,4 @@ wheels/
 .Rapp.history
 .Renviron
 .Rprofile
-*-Ex.R
-
-# IDE and editor files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# TLE data (can be regenerated)
-output/**/starlink.tle
-
-# Large output directories (except for our main result)
-output/*
-!output/20250519_154149/
-
-# Local configuration
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Log files
-*.log 
+*-Ex.R 
