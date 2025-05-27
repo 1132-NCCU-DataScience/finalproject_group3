@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI 改善效果展示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #334155;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .demo-section {
+            margin-bottom: 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .demo-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* 複製原本的樣式 */
+        .new-analysis-alert {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: slideInDown 0.5s ease-out;
+        }
+        
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .alert-icon {
+            font-size: 1.5em;
+            color: #f59e0b;
+            animation: wiggle 1s ease-in-out infinite;
+        }
+        
+        .alert-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #92400e;
+            margin: 0;
+        }
+        
+        .alert-message {
+            color: #78350f;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+        }
+        
+        .alert-cta {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .alert-cta:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .featured-report {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1)) !important;
+            border: 2px solid #10b981 !important;
+            position: relative;
+            margin-bottom: 20px !important;
+            padding: 18px 20px !important;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2) !important;
+            animation: pulse-glow 2s ease-in-out infinite;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #334155;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .featured-report::before {
+            content: "🔥 熱門報告";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .featured-report:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)) !important;
+            border-color: #059669 !important;
+            transform: translateY(-4px) !important;
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.3) !important;
+        }
+        
+        .report-icon {
+            color: #10b981 !important;
+            font-size: 1.2em !important;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes wiggle {
+            0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 98%, 100% {
+                transform: rotate(0deg);
+            }
+            3.5%, 10.5%, 17.5%, 24.5%, 31.5%, 38.5%, 45.5%, 52.5%, 59.5%, 66.5%, 73.5%, 80.5%, 87.5%, 94.5% {
+                transform: rotate(2deg);
+            }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+            }
+            50% { 
+                box-shadow: 0 8px 35px rgba(16, 185, 129, 0.4);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-3px);
+            }
+            60% {
+                transform: translateY(-2px);
+            }
+        }
+        
+        .normal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background-color: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            margin-bottom: 15px;
+        }
+        
+        .normal-link:hover {
+            background: rgba(102, 126, 234, 0.15);
+            text-decoration: none;
+            color: #5a67d8;
+            border-color: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.1);
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .demo-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .before, .after {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .before {
+            background: #fef2f2;
+        }
+        
+        .after {
+            background: #f0fdf4;
+        }
+        
+        .status-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .improvement-note {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-palette"></i> Starlink 分析平台 UI/UX 改善展示</h1>
+        
+        <div class="demo-section">
+            <div class="demo-title">
+                <i class="fas fa-bell"></i>
+                新功能：分析完成通知
+            </div>
+            <p>當分析完成時，會自動顯示醒目的通知，引導用戶查看詳細報告：</p>
+            
+            <div class="new-analysis-alert">
+                <div class="alert-header">
+                    <div class="alert-icon">🎉</div>
+                    <h4 class="alert-title">分析完成！</h4>
+                </div>
+                <div class="alert-message">
+                    您的 Starlink 衛星覆蓋分析已經完成，詳細的 R 分析報告現在可以查看了！
+                </div>
+                <a href="/static/report_r.html" target="_blank" class="alert-cta">
+                    <i class="fas fa-chart-line"></i>
+                    立即查看詳細報告
+                </a>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">
+                <i class="fas fa-star"></i>
+                突出顯示：R 分析報告
+            </div>
+            <p>R 分析報告現在有特殊的視覺效果，更容易被注意到：</p>
+            
+            <div class="before-after">
+                <div class="before">
+                    <div class="status-text">改善前：普通連結</div>
+                    <a href="#" class="normal-link">
+                        <i class="fas fa-file-alt"></i>
+                        report_r.html
+                    </a>
+                </div>
+                <div class="after">
+                    <div class="status-text">改善後：特色報告</div>
+                    <a href="#" class="featured-report">
+                        <i class="fas fa-chart-line report-icon"></i>
+                        report_r.html
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">
+                <i class="fas fa-magic"></i>
+                動畫效果展示
+            </div>
+            <p>各種動畫效果讓 UI 更生動：</p>
+            
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin: 10px 0;">
+                    <strong>🎯 脈衝光暈：</strong> R 報告連結有柔和的發光效果
+                </li>
+                <li style="margin: 10px 0;">
+                    <strong>🎊 圖示動畫：</strong> 報告圖示會上下跳動吸引注意
+                </li>
+                <li style="margin: 10px 0;">
+                    <strong>📱 通知動畫：</strong> 分析完成通知會從上方滑入
+                </li>
+                <li style="margin: 10px 0;">
+                    <strong>🔔 擺動提醒：</strong> 通知圖示會輕微擺動
+                </li>
+            </ul>
+        </div>
+        
+        <div class="improvement-note">
+            <strong><i class="fas fa-lightbulb"></i> 改善重點：</strong>
+            <br>
+            • <strong>可見性提升：</strong>使用明亮的色彩和動畫讓 R 報告更顯眼<br>
+            • <strong>即時反饋：</strong>分析完成時立即顯示通知並自動捲動到視野內<br>
+            • <strong>視覺層次：</strong>重要報告有特殊標記，一般檔案保持簡潔<br>
+            • <strong>用戶引導：</strong>明確的 CTA 按鈕引導用戶查看詳細報告<br>
+            • <strong>非侵入性：</strong>通知會在8秒後自動消失，不影響用戶操作
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="demo-button" onclick="window.open('http://localhost:8080', '_blank')">
+                <i class="fas fa-external-link-alt"></i> 前往實際應用測試
+            </button>
+        </div>
+    </div>
+</body>
+</html> 

@@ -454,6 +454,150 @@
         }
     }
 
+    /* 特殊的 R 報告樣式 */
+    .featured-report {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1)) !important;
+        border: 2px solid #10b981 !important;
+        position: relative;
+        margin-bottom: 20px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2) !important;
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    .featured-report::before {
+        content: "🔥 熱門報告";
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    .featured-report:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)) !important;
+        border-color: #059669 !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { 
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+        }
+        50% { 
+            box-shadow: 0 8px 35px rgba(16, 185, 129, 0.4);
+        }
+    }
+    
+    /* 報告圖示特殊樣式 */
+    .report-icon {
+        color: #10b981 !important;
+        font-size: 1.2em !important;
+        animation: bounce 1s ease-in-out infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-3px);
+        }
+        60% {
+            transform: translateY(-2px);
+        }
+    }
+    
+    /* 新完成分析的通知樣式 */
+    .new-analysis-alert {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+        border: 2px solid #f59e0b;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: none;
+        animation: slideInDown 0.5s ease-out;
+    }
+    
+    .new-analysis-alert.show {
+        display: block;
+    }
+    
+    .alert-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .alert-icon {
+        font-size: 1.5em;
+        color: #f59e0b;
+        animation: wiggle 1s ease-in-out infinite;
+    }
+    
+    .alert-title {
+        font-size: 1.2em;
+        font-weight: 700;
+        color: #92400e;
+        margin: 0;
+    }
+    
+    .alert-message {
+        color: #78350f;
+        font-size: 0.95em;
+        margin-bottom: 15px;
+    }
+    
+    .alert-cta {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.9em;
+    }
+    
+    .alert-cta:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes wiggle {
+        0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 98%, 100% {
+            transform: rotate(0deg);
+        }
+        3.5%, 10.5%, 17.5%, 24.5%, 31.5%, 38.5%, 45.5%, 52.5%, 59.5%, 66.5%, 73.5%, 80.5%, 87.5%, 94.5% {
+            transform: rotate(2deg);
+        }
+    }
 </style>
 {% endblock %}
 
@@ -586,6 +730,21 @@
             </button>
         </div>
         
+        <!-- 新分析完成通知 -->
+        <div class="new-analysis-alert" id="new-analysis-alert">
+            <div class="alert-header">
+                <div class="alert-icon">🎉</div>
+                <h4 class="alert-title">分析完成！</h4>
+            </div>
+            <div class="alert-message">
+                您的 Starlink 衛星覆蓋分析已經完成，詳細的 R 分析報告現在可以查看了！
+            </div>
+            <a href="/static/report_r.html" target="_blank" class="alert-cta" id="view-report-btn">
+                <i class="fas fa-chart-line"></i>
+                立即查看詳細報告
+            </a>
+        </div>
+
         <div class="progress-section" id="progress-section-container" style="display: none;"> <!-- Initially hidden -->
             <div class="status-message" id="status-message">{{ analysis_status.message }}</div>
             <div class="progress-container">
@@ -639,6 +798,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Containers for progress and results
     const progressSectionContainer = document.getElementById('progress-section-container');
     const resultsSectionContainer = document.getElementById('results-section-container');
+    const newAnalysisAlert = document.getElementById('new-analysis-alert');
+    
+    // 追蹤上次的分析狀態，用於檢測新完成的分析
+    let lastAnalysisProgress = 0;
+    let alertShown = false;
 
 
     function updateStatsDisplay(stats) {
@@ -699,6 +863,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
+                // 檢測分析是否剛完成
+                if (data.progress === 100 && lastAnalysisProgress < 100 && !alertShown) {
+                    // 顯示新分析完成通知
+                    newAnalysisAlert.classList.add('show');
+                    alertShown = true;
+                    
+                    // 滾動到通知區域
+                    setTimeout(() => {
+                        newAnalysisAlert.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 300);
+                    
+                    // 5秒後自動隱藏通知（但用戶還可以手動查看）
+                    setTimeout(() => {
+                        newAnalysisAlert.classList.remove('show');
+                    }, 8000);
+                }
+                
+                lastAnalysisProgress = data.progress;
+                
                 if (data.output_files && data.output_files.length > 0 && (data.progress === 100 || !data.running)) {
                     outputList.innerHTML = '';
                     data.output_files.forEach(file => {
@@ -708,10 +894,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         link.textContent = file.split('/').pop(); // Show only filename
                         link.target = '_blank';
                         
+                        // 為 R 報告添加特殊樣式
+                        if (file.includes('report_r.html')) {
+                            link.classList.add('featured-report');
+                        }
+                        
                         const icon = document.createElement('i');
                         icon.className = 'fas'; // Base class
                         if (file.includes('.html')) {
-                            icon.classList.add('fa-file-alt'); // More appropriate icon
+                            if (file.includes('report_r.html')) {
+                                icon.classList.add('fa-chart-line');
+                                icon.classList.add('report-icon');
+                            } else {
+                                icon.classList.add('fa-file-alt');
+                            }
                         } else if (file.includes('.csv')) {
                             icon.classList.add('fa-file-csv');
                         } else if (file.includes('.json')) {
@@ -762,6 +958,11 @@ document.addEventListener('DOMContentLoaded', function() {
         outputList.innerHTML = '';
         resultsSectionContainer.style.display = 'none'; // Hide results section initially
         progressSectionContainer.style.display = 'block'; // Show progress section
+        
+        // 重置通知狀態
+        newAnalysisAlert.classList.remove('show');
+        alertShown = false;
+        lastAnalysisProgress = 0;
 
         fetch('/start_analysis', {
             method: 'POST',
