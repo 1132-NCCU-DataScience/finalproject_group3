@@ -1,12 +1,12 @@
 {
-  "avg_visible_satellites": 32.5958,
-  "max_visible_satellites": 47,
-  "min_visible_satellites": 22,
+  "avg_visible_satellites": 33.6,
+  "max_visible_satellites": 42,
+  "min_visible_satellites": 26,
   "coverage_percentage": 100,
-  "avg_elevation": 73.69,
-  "max_elevation": 88.4688,
-  "analysis_duration_minutes": 240,
-  "last_updated_time": "2025-05-27 09:28:55",
+  "avg_elevation": 74.7942,
+  "max_elevation": 87.0755,
+  "analysis_duration_minutes": 30,
+  "last_updated_time": "2025-05-27 09:46:07",
   "observer_location": {
     "lat": 25.033,
     "lon": 121.5654
