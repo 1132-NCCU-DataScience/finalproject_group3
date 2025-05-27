@@ -46,46 +46,12 @@ abs_heatmap_path <- file.path(data_dir_path, params$heatmap_plot)
 message(paste("RMD Setup: Absolute sat_plot_path:", abs_sat_plot_path))
 message(paste("RMD Setup: Does abs_sat_plot_path exist?", file.exists(abs_sat_plot_path)))
 
-# 創建一個 Rmd 文件旁邊的臨時目錄來存放圖片副本
-# getwd() 在 rmarkdown::render 執行此 chunk 時，通常是 Rmd 文件所在的目錄
-# (例如 /home/lean/Starlink-Taipei/app/services)
-temp_fig_dir_name <- "temp_report_figures"
-# 相對路徑 temp_report_figures (相對於 Rmd 文件)
-relative_temp_fig_dir <- temp_fig_dir_name 
-# 絕對路徑
-absolute_temp_fig_dir <- normalizePath(file.path(getwd(), temp_fig_dir_name), mustWork = FALSE)
+# 簡化的路徑處理 - 直接使用檔案名稱，因為所有檔案都在 app/static 目錄中
 
-if (!dir.exists(absolute_temp_fig_dir)) {
-  dir.create(absolute_temp_fig_dir, recursive = TRUE)
-  message(paste("RMD Setup: Created temp fig dir:", absolute_temp_fig_dir))
-}
-
-# 複製文件並返回相對於 Rmd 文件的路徑供 include_graphics 使用
-copy_to_local_temp_fig <- function(absolute_original_path, temp_dir_relative_path) {
-  if (!file.exists(absolute_original_path)) {
-    warning(paste("Original file for copy does not exist:", absolute_original_path))
-    return(basename(absolute_original_path)) # Fallback to basename
-  }
-  # 目標是 Rmd 文件旁邊的子目錄
-  dest_file_path_abs <- file.path(normalizePath(temp_dir_relative_path, mustWork=TRUE), basename(absolute_original_path))
-
-  success <- file.copy(absolute_original_path, dest_file_path_abs, overwrite = TRUE)
-  if (success) {
-    # include_graphics 需要的路徑是相對於 Rmd 文件的
-    # 例如 "temp_report_figures/my_image.png"
-    local_path_for_include <- file.path(temp_dir_relative_path, basename(absolute_original_path))
-    message(paste("RMD Setup: Copied", basename(absolute_original_path), "to local temp. Path for include_graphics:", local_path_for_include))
-    return(local_path_for_include)
-  } else {
-    warning(paste("Failed to copy", basename(absolute_original_path), "to temp dir."))
-    # 如果複製失敗，嘗試直接使用絕對路徑 (雖然這之前失敗了)
-    return(absolute_original_path)
-  }
-}
-
-# 使用複製後的相對路徑
-sat_plot_path_for_rmd <- copy_to_local_temp_fig(abs_sat_plot_path, relative_temp_fig_dir)
-elev_plot_path_for_rmd <- copy_to_local_temp_fig(abs_elev_plot_path, relative_temp_fig_dir)
+# 直接使用 app/static 中的圖片，這樣在 HTML 報告中可以正確顯示
+# 因為 Flask 會將 app/static 作為靜態檔案服務
+sat_plot_path_for_rmd <- params$sat_timeline_plot  # 例如 "visible_satellites_timeline.png"
+elev_plot_path_for_rmd <- params$elev_timeline_plot  # 例如 "elevation_timeline.png"
 
 # HTML 文件通常可以直接使用絕對路徑，或者如果它是自包含的，也可能需要相對路徑
 # htmltools::includeHTML 應該能處理絕對路徑，所以 heatmap_path 保持為絕對路徑
@@ -147,24 +113,14 @@ kable(stats_df, caption = "核心統計指標", col.names = c("指標", "數值"
 
 此圖表展示了在分析時段內，台北地區上空可見的 Starlink 衛星數量隨時間的變化情況。
 
-```{r sat_timeline, fig.cap="可見衛星數量時間序列圖"}
-message(paste("RMD sat_timeline: Current working directory:", getwd()))
-message(paste("RMD sat_timeline: Using plot path:", sat_plot_path_for_rmd))
-message(paste("RMD sat_timeline: Does this plot path exist (relative to RMD)?", file.exists(sat_plot_path_for_rmd)))
-# Forcing a check against absolute path as well, just for extreme sanity check
-abs_check_sat_plot <- normalizePath(file.path(getwd(), sat_plot_path_for_rmd), mustWork = FALSE)
-message(paste("RMD sat_timeline: Absolute check for plot path:", abs_check_sat_plot, "Exists?", file.exists(abs_check_sat_plot)))
-
-if (file.exists(sat_plot_path_for_rmd)) {
-  knitr::include_graphics(sat_plot_path_for_rmd)
+```{r sat_timeline, fig.cap="可見衛星數量時間序列圖", results='asis'}
+# 在 HTML 報告中，我們需要使用相對於靜態檔案服務的路徑
+# 因為報告會被放在 app/static/ 目錄下，圖片也在同一目錄
+if (file.exists(abs_sat_plot_path)) {
+  # 在 HTML 中直接嵌入圖片，使用相對路徑
+  cat(paste0('<img src="', sat_plot_path_for_rmd, '" alt="可見衛星數量時間序列圖" style="max-width: 100%; height: auto;" />'))
 } else {
-  # Fallback if the relative path somehow doesn't work, try the original absolute again
-  if(file.exists(abs_sat_plot_path)) {
-    message(paste("RMD sat_timeline: Relative path failed, trying original absolute path:", abs_sat_plot_path))
-    knitr::include_graphics(abs_sat_plot_path)
-  } else {
-    cat("衛星數量時間序列圖檔案未找到。預期相對路徑: ", sat_plot_path_for_rmd, "或絕對路徑: ", abs_sat_plot_path)
-  }
+  cat("衛星數量時間序列圖檔案未找到。")
 }
 ```
 
@@ -172,22 +128,13 @@ if (file.exists(sat_plot_path_for_rmd)) {
 
 此圖表顯示了在分析時段內，可見衛星中最大仰角隨時間的變化。較高的仰角通常意味著更好的訊號品質。
 
-```{r elev_timeline, fig.cap="最大衛星仰角時間序列圖"}
-message(paste("RMD elev_timeline: Current working directory:", getwd()))
-message(paste("RMD elev_timeline: Using plot path:", elev_plot_path_for_rmd))
-message(paste("RMD elev_timeline: Does this plot path exist (relative to RMD)?", file.exists(elev_plot_path_for_rmd)))
-abs_check_elev_plot <- normalizePath(file.path(getwd(), elev_plot_path_for_rmd), mustWork = FALSE)
-message(paste("RMD elev_timeline: Absolute check for plot path:", abs_check_elev_plot, "Exists?", file.exists(abs_check_elev_plot)))
-
-if (file.exists(elev_plot_path_for_rmd)) {
-  knitr::include_graphics(elev_plot_path_for_rmd)
+```{r elev_timeline, fig.cap="最大衛星仰角時間序列圖", results='asis'}
+# 在 HTML 報告中使用相對路徑
+if (file.exists(abs_elev_plot_path)) {
+  # 在 HTML 中直接嵌入圖片，使用相對路徑
+  cat(paste0('<img src="', elev_plot_path_for_rmd, '" alt="最大衛星仰角時間序列圖" style="max-width: 100%; height: auto;" />'))
 } else {
-   if(file.exists(abs_elev_plot_path)) {
-    message(paste("RMD elev_timeline: Relative path failed, trying original absolute path:", abs_elev_plot_path))
-    knitr::include_graphics(abs_elev_plot_path)
-  } else {
-    cat("最大仰角時間序列圖檔案未找到。預期相對路徑: ", elev_plot_path_for_rmd, "或絕對路徑: ", abs_elev_plot_path)
-  }
+  cat("最大仰角時間序列圖檔案未找到。")
 }
 ```
 
@@ -195,14 +142,13 @@ if (file.exists(elev_plot_path_for_rmd)) {
 
 下方為一個互動式熱力圖，展示了在不同時間點（小時和分鐘）的可見衛星數量。顏色越深表示可見衛星越多。
 
-```{r heatmap_interactive}
-message(paste("RMD heatmap: Current working directory:", getwd()))
-message(paste("RMD heatmap: Using heatmap path:", heatmap_path_for_rmd)) # This is absolute
-message(paste("RMD heatmap: Does heatmap_path_for_rmd (absolute) exist?", file.exists(heatmap_path_for_rmd)))
-if (file.exists(heatmap_path_for_rmd)) {
-  htmltools::includeHTML(heatmap_path_for_rmd)
+```{r heatmap_interactive, results='asis'}
+# 熱力圖使用 iframe 嵌入，指向相對路徑
+heatmap_filename <- params$heatmap_plot  # 例如 "coverage_heatmap.html"
+if (file.exists(abs_heatmap_path)) {
+  cat(paste0('<iframe src="', heatmap_filename, '" width="100%" height="600px" frameborder="0"></iframe>'))
 } else {
-  cat("覆蓋熱力圖檔案未找到。預期路徑: ", heatmap_path_for_rmd)
+  cat("覆蓋熱力圖檔案未找到。")
 }
 ```
 
