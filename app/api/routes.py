@@ -69,26 +69,20 @@ def run_analysis_thread(duration):
     analysis_status["output_files"] = []
 
     try:
-        # app.root_path is the absolute path to the 'app' directory.
-        # The analysis_service.py is inside app/services.
-        script_path = os.path.join(app.root_path, 'services', 'analysis_service.py')
+        # 使用新的 R 整合分析服務
+        script_path = os.path.join(app.root_path, 'services', 'r_integration.py')
 
-        # Ensure the script uses the same Python interpreter if possible, or ensure 'python' is correct.
-        # Using sys.executable from the main process is safer for Popen if the script is meant to run in the same env.
-        # However, this is a subprocess call that might have its own venv considerations in complex setups.
-        # For now, assume 'python' resolves correctly or use sys.executable from the caller if appropriate.
-        # Let's use sys.executable to be more robust.
+        # 使用當前 Python 解釋器
         executable = sys.executable 
 
-        # Define the output directory for the analysis script
-        # This should be app.static_folder, which is an absolute path to app/static
+        # 輸出目錄設定為 app.static_folder
         analysis_output_dir = app.static_folder
 
         process = subprocess.Popen(
             [executable, script_path, 
              '--duration', str(duration), 
              '--progress_output', 
-             '--output', analysis_output_dir  # Pass the correct output directory
+             '--output', analysis_output_dir
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -120,17 +114,23 @@ def run_analysis_thread(duration):
         return_code = process.wait()
 
         if return_code == 0:
-            analysis_status["message"] = "分析完成"
+            analysis_status["message"] = "R 分析完成"
             analysis_status["progress"] = 100
             analysis_status["last_run_success"] = True
             if not analysis_status["output_files"]:
-                 # Default output files might change based on the script's new location/logic
-                analysis_status["output_files"] = ['report.html', 'coverage_heatmap.html'] 
+                 # R 分析的預設輸出檔案
+                analysis_status["output_files"] = [
+                    'coverage_stats.json',
+                    'visible_satellites_timeline.png', 
+                    'elevation_timeline.png',
+                    'coverage_heatmap.html',
+                    'report_r.html'  # 新增 R Markdown 報告
+                ] 
         else:
-            analysis_status["message"] = "分析失敗"
+            analysis_status["message"] = "R 分析失敗"
             analysis_status["last_run_success"] = False
             analysis_status["error_message"] = stderr_output or "未知錯誤"
-            print(f"分析失敗，錯誤輸出: {stderr_output}")
+            print(f"R 分析失敗，錯誤輸出: {stderr_output}")
 
     except Exception as e:
         analysis_status["message"] = "分析執行錯誤"

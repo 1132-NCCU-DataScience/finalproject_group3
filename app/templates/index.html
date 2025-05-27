@@ -644,13 +644,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStatsDisplay(stats) {
         if (!stats) return;
         avgVisibleSatellitesEl.textContent = parseFloat(stats.avg_visible_satellites || 0).toFixed(1);
-        coveragePercentageEl.textContent = \`\${parseInt(stats.coverage_percentage || 0)}%\`;
-        avgElevationEl.textContent = \`\${parseFloat(stats.avg_elevation || 0).toFixed(1)}°\`;
+        coveragePercentageEl.textContent = `${parseInt(stats.coverage_percentage || 0)}%`;
+        avgElevationEl.textContent = `${parseFloat(stats.avg_elevation || 0).toFixed(1)}°`;
         maxVisibleSatellitesEl.textContent = parseInt(stats.max_visible_satellites || 0);
-        if (analysisDurationDisplayEl) analysisDurationDisplayEl.textContent = \`\${parseInt(stats.analysis_duration_minutes || 0)} 分鐘\`;
-        if (maxElevationDisplayEl) maxElevationDisplayEl.textContent = \`\${parseFloat(stats.max_elevation || 0).toFixed(1)}°\`;
+        if (analysisDurationDisplayEl) analysisDurationDisplayEl.textContent = `${parseInt(stats.analysis_duration_minutes || 0)} 分鐘`;
+        if (maxElevationDisplayEl) maxElevationDisplayEl.textContent = `${parseFloat(stats.max_elevation || 0).toFixed(1)}°`;
         if (stats.observer_location && observerLocationDisplayEl) {
-            observerLocationDisplayEl.textContent = \`\${parseFloat(stats.observer_location.lat || 25.03).toFixed(2)}°N, \${parseFloat(stats.observer_location.lon || 121.57).toFixed(2)}°E\`;
+            observerLocationDisplayEl.textContent = `${parseFloat(stats.observer_location.lat || 25.03).toFixed(2)}°N, ${parseFloat(stats.observer_location.lon || 121.57).toFixed(2)}°E`;
         }
         if (lastUpdatedTimeDisplayEl) lastUpdatedTimeDisplayEl.textContent = stats.last_updated_time || new Date().toLocaleString('zh-TW');
     }
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.output_files.forEach(file => {
                         const listItem = document.createElement('li');
                         const link = document.createElement('a');
-                        link.href = \`/static/\${file}?v=\${new Date().getTime()}\`; // Cache busting
+                        link.href = `/static/${file}?v=${new Date().getTime()}`; // Cache busting
                         link.textContent = file.split('/').pop(); // Show only filename
                         link.target = '_blank';
                         
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
                  // Initial call to get status immediately after start
                 updateAnalysisStatus();
             } else {
-                statusMessage.textContent = \`啟動失敗: \${data.message}\`;
+                statusMessage.textContent = `啟動失敗: ${data.message}`;
                 errorMessageDisplay.textContent = data.message;
                 errorMessageDisplay.style.display = 'block';
                 startButton.disabled = false;
