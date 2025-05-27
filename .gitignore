@@ -64,4 +64,13 @@ Thumbs.db
 .Rapp.history
 .Renviron
 .Rprofile
-*-Ex.R 
+*-Ex.R
+
+# Generated reports and data in app/static
+app/static/report_r.html
+app/static/coverage_heatmap.html
+app/static/elevation_timeline.png
+app/static/visible_satellites_timeline.png
+app/static/coverage_data.csv
+app/static/coverage_stats.json
+app/static/*.tle 
