@@ -281,12 +281,31 @@
     <!-- 結果解讀指南 -->
     <div class="section-card">
         <div class="section-title">
-            <i class="fas fa-chart-bar section-icon"></i>
+            <i class="fas fa-chart-pie section-icon"></i>
             結果解讀指南
         </div>
         
         <div class="subsection">
-            <h4><i class="fas fa-line-chart"></i> 統計圖表解讀</h4>
+            <h4><i class="fas fa-file-alt"></i> HTML 分析報告</h4>
+            <p>
+                系統會生成一份詳細的 HTML 分析報告 (<code>report_r.html</code>)，該報告使用 R Markdown 製作，整合了所有關鍵分析結果。
+                您可以從主頁下載此報告。
+            </p>
+            <ul>
+                <li><strong>核心統計指標：</strong> 快速了解分析時段內的平均/最大/最小可見衛星數、整體覆蓋率及平均/最高衛星仰角。</li>
+                <li><strong>視覺化圖表：</strong>
+                    <ul>
+                        <li><em>可見衛星數量時間序列圖：</em> 展示衛星數量隨時間的變化，有助於識別覆蓋高峰和低谷時段。</li>
+                        <li><em>最大衛星仰角時間序列圖：</em> 顯示最佳可連接衛星的仰角變化，仰角越高通常訊號越好。</li>
+                        <li><em>衛星覆蓋熱力圖 (互動式)：</em> 以顏色深淺表示不同時段的衛星可見數量，可直觀看出覆蓋模式。</li>
+                    </ul>
+                </li>
+                <li><strong>原始數據樣本：</strong> 提供部分詳細的逐分鐘數據，用於進一步分析或驗證。</li>
+            </ul>
+        </div>
+
+        <div class="subsection">
+            <h4><i class="fas fa-table"></i> 統計圖表解讀</h4>
             
             <div class="row">
                 <div class="col-md-6">
