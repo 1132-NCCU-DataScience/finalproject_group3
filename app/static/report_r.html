@@ -5653,7 +5653,7 @@ TLE (Two-Line Element)
 <ul>
 <li><strong>觀測地點:</strong> 台北 (25.03°N, 121.57°E)</li>
 <li><strong>分析時長:</strong> 5 分鐘</li>
-<li><strong>數據更新時間:</strong> 2025-05-27 10:41:55</li>
+<li><strong>數據更新時間:</strong> 2025-05-27 13:50:20</li>
 </ul>
 </div>
 <div id="核心統計指標" class="section level2">
@@ -5670,15 +5670,15 @@ TLE (Two-Line Element)
 <tbody>
 <tr class="odd">
 <td align="left">平均可見衛星數</td>
-<td align="left">35.60</td>
+<td align="left">36.80</td>
 </tr>
 <tr class="even">
 <td align="left">最大可見衛星數</td>
-<td align="left">38</td>
+<td align="left">40</td>
 </tr>
 <tr class="odd">
 <td align="left">最小可見衛星數</td>
-<td align="left">33</td>
+<td align="left">31</td>
 </tr>
 <tr class="even">
 <td align="left">整體覆蓋率 (%)</td>
@@ -5686,11 +5686,11 @@ TLE (Two-Line Element)
 </tr>
 <tr class="odd">
 <td align="left">平均最大仰角 (°)</td>
-<td align="left">72.05</td>
+<td align="left">71.17</td>
 </tr>
 <tr class="even">
 <td align="left">最高衛星仰角 (°)</td>
-<td align="left">79.72</td>
+<td align="left">87.72</td>
 </tr>
 </tbody>
 </table>
@@ -5708,18 +5708,59 @@ TLE (Two-Line Element)
 <p>此圖表顯示了在分析時段內，可見衛星中最大仰角隨時間的變化。較高的仰角通常意味著更好的訊號品質。</p>
 <p><img role="img" aria-label="最大衛星仰角時間序列圖" src="elevation_timeline.png" alt="最大衛星仰角時間序列圖" style="max-width: 100%; height: auto;" /></p>
 </div>
-<div id="衛星覆蓋熱力圖" class="section level3">
-<h3>3.3 衛星覆蓋熱力圖</h3>
-<p>下方為一個互動式熱力圖，展示了在不同時間點（小時和分鐘）的可見衛星數量。顏色越深表示可見衛星越多。</p>
-<iframe role="img" src="coverage_heatmap.html" width="100%" height="600px" frameborder="0">
-</iframe>
+<div id="覆蓋品質詳細統計表" class="section level3">
+<h3>3.3 覆蓋品質詳細統計表</h3>
+<p>下表提供了更詳細的衛星覆蓋品質統計數據，幫助您評估連接的穩定性。</p>
+<table>
+<caption>覆蓋品質詳細統計</caption>
+<thead>
+<tr class="header">
+<th align="left">統計項目</th>
+<th align="left">數值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">總分析時長 (分鐘)</td>
+<td align="left">30</td>
+</tr>
+<tr class="even">
+<td align="left">良好覆蓋時間 (≥4顆衛星, 分鐘)</td>
+<td align="left">30</td>
+</tr>
+<tr class="odd">
+<td align="left">良好覆蓋時間百分比 (≥4顆衛星, %)</td>
+<td align="left">100.00</td>
+</tr>
+<tr class="even">
+<td align="left">訊號中斷時間 (0顆衛星, 分鐘)</td>
+<td align="left">0</td>
+</tr>
+<tr class="odd">
+<td align="left">訊號中斷時間百分比 (0顆衛星, %)</td>
+<td align="left">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">最長連續良好覆蓋 (分鐘)</td>
+<td align="left">30</td>
+</tr>
+<tr class="odd">
+<td align="left">最長連續訊號中斷 (分鐘)</td>
+<td align="left">0</td>
+</tr>
+<tr class="even">
+<td align="left">時間佔比 (8+ 顆 (極佳))</td>
+<td align="left">100.00%</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="原始數據樣本" class="section level2">
 <h2>4. 原始數據樣本</h2>
 <p>下表展示了部分原始覆蓋數據，包含時間戳、可見衛星數量以及最大仰角等信息。您可以進行排序和篩選。</p>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-8902dabb078bf088b996" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-8902dabb078bf088b996">{"x":{"filter":"top","vertical":false,"filterHTML":"<tr>\n  <td><\/td>\n  <td data-type=\"time\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"1748313795000\" data-max=\"1748314095000\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"30\" data-max=\"37\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"62.5194865234591\" data-max=\"84.8109158197999\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"561.523465679731\" data-max=\"610.73159778621\" data-scale=\"13\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","caption":"<caption>覆蓋數據樣本 (前 100 筆)<\/caption>","data":[["1","2","3","4","5","6"],["2025-05-27T02:43:15Z","2025-05-27T02:44:15Z","2025-05-27T02:45:15Z","2025-05-27T02:46:15Z","2025-05-27T02:47:15Z","2025-05-27T02:48:15Z"],[33,37,31,32,30,32],[74.36259902012179,71.34450205797268,68.65625543883068,84.81091581979992,62.51948652345912,74.04797402938485],["STARLINK-5791","STARLINK-30447","STARLINK-5453","STARLINK-5358","STARLINK-2634","STARLINK-2634"],[579.0519141713503,587.4041299468641,576.7759521135365,561.5234656797313,610.7315977862102,567.9391317493395]],"container":"<table class=\"cell-border stripe hover\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>時間戳<\/th>\n      <th>可見衛星數<\/th>\n      <th>最大仰角<\/th>\n      <th>最佳衛星<\/th>\n      <th>距離公里<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"scrollX":true,"autoWidth":true,"columnDefs":[{"className":"dt-right","targets":[2,3,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"時間戳","targets":1},{"name":"可見衛星數","targets":2},{"name":"最大仰角","targets":3},{"name":"最佳衛星","targets":4},{"name":"距離公里","targets":5}],"order":[],"orderClasses":false,"orderCellsTop":true}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-3026edf2a12cd3f3c5d3" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3026edf2a12cd3f3c5d3">{"x":{"filter":"top","vertical":false,"filterHTML":"<tr>\n  <td><\/td>\n  <td data-type=\"time\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"1748332994000\" data-max=\"1748334734000\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"35\" data-max=\"50\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"57.1635192458531\" data-max=\"85.6221409924242\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"347.803758474235\" data-max=\"632.821751513432\" data-scale=\"13\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","caption":"<caption>覆蓋數據樣本 (前 100 筆)<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"],["2025-05-27T08:03:14Z","2025-05-27T08:04:14Z","2025-05-27T08:05:14Z","2025-05-27T08:06:14Z","2025-05-27T08:07:14Z","2025-05-27T08:08:14Z","2025-05-27T08:09:14Z","2025-05-27T08:10:14Z","2025-05-27T08:11:14Z","2025-05-27T08:12:14Z","2025-05-27T08:13:14Z","2025-05-27T08:14:14Z","2025-05-27T08:15:14Z","2025-05-27T08:16:14Z","2025-05-27T08:17:14Z","2025-05-27T08:18:14Z","2025-05-27T08:19:14Z","2025-05-27T08:20:14Z","2025-05-27T08:21:14Z","2025-05-27T08:22:14Z","2025-05-27T08:23:14Z","2025-05-27T08:24:14Z","2025-05-27T08:25:14Z","2025-05-27T08:26:14Z","2025-05-27T08:27:14Z","2025-05-27T08:28:14Z","2025-05-27T08:29:14Z","2025-05-27T08:30:14Z","2025-05-27T08:31:14Z","2025-05-27T08:32:14Z"],[44,43,42,40,37,35,42,44,38,41,40,48,47,48,48,43,43,42,46,44,50,50,44,48,43,43,38,37,39,45],[81.10028260846822,69.19071502086216,78.1818490864366,79.82438084081181,78.69380341059752,79.68666747754341,80.49236967837125,78.83130430229353,81.60541221342609,79.22670189652112,70.64401786274715,82.26453294669393,76.96443431105426,57.16351924585309,74.42782079653368,78.51604505762641,60.93414088155799,73.17102796654268,71.10466558328407,76.37451182375389,62.07982836648234,85.62214099242422,70.71341578537927,75.57167049859439,71.73139606346523,70.3139067003069,67.29334180528522,80.1758766232476,66.38575350052737,81.27940827484508],["STARLINK-31176","STARLINK-32532","STARLINK-30438","STARLINK-2329","STARLINK-6371","STARLINK-32497","STARLINK-4520","STARLINK-31454","STARLINK-32650","STARLINK-6291","STARLINK-31156","STARLINK-31141","STARLINK-1556","STARLINK-3969","STARLINK-6265","STARLINK-4589","STARLINK-3994","STARLINK-11479 [DTC]","STARLINK-3935","STARLINK-32537","STARLINK-4645","STARLINK-1133","STARLINK-3941","STARLINK-1567","STARLINK-3937","STARLINK-34088","STARLINK-34184","STARLINK-32732","STARLINK-31168","STARLINK-3897"],[565.885744613017,514.6024685486093,485.4631647411413,555.6465042847699,569.6764405315813,490.9302890534591,547.1120305329155,483.7665087721264,480.3864701640789,568.5809817170378,590.0403718189431,493.0984752609142,560.4931486459084,632.8217515134315,578.8649025156778,550.4585375314987,610.5087488733335,371.6030110474642,568.493120012746,496.231979707389,604.7227348921994,549.0193028566538,569.6550396690919,563.9400342369729,566.3843196718489,347.8037584742353,354.733550694962,489.9591319758715,529.8480843062981,545.839202898788]],"container":"<table class=\"cell-border stripe hover\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>時間戳<\/th>\n      <th>可見衛星數<\/th>\n      <th>最大仰角<\/th>\n      <th>最佳衛星<\/th>\n      <th>距離公里<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"scrollX":true,"autoWidth":true,"columnDefs":[{"className":"dt-right","targets":[2,3,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"時間戳","targets":1},{"name":"可見衛星數","targets":2},{"name":"最大仰角","targets":3},{"name":"最佳衛星","targets":4},{"name":"距離公里","targets":5}],"order":[],"orderClasses":false,"orderCellsTop":true}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="分析說明與限制" class="section level2">
 <h2>5. 分析說明與限制</h2>
@@ -5729,7 +5770,7 @@ TLE (Two-Line Element)
 <li>「最佳衛星」指在該時間點具有最大仰角的衛星。</li>
 </ul>
 <hr />
-<p>報告生成時間: 2025-05-27 10:43:18</p>
+<p>報告生成時間: 2025-05-27 16:03:18</p>
 </div>
 
 

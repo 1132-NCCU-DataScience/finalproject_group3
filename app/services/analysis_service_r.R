@@ -188,9 +188,6 @@ generate_visualizations_r <- function(coverage_df, output_dir = "output") {
     # Generate elevation timeline
     generate_elevation_timeline(plot_data, output_dir)
     
-    # Generate coverage heatmap
-    generate_coverage_heatmap(plot_data, output_dir)
-    
     message("✅ All visualizations generated successfully")
     return(TRUE)
     
@@ -297,106 +294,6 @@ generate_elevation_timeline <- function(plot_data, output_dir) {
   message(paste("✅ Elevation timeline saved to:", output_path))
 }
 
-#' Generate Coverage Heatmap
-#' 
-#' @description 
-#' Create interactive heatmap showing satellite coverage over time
-#' 
-#' @param plot_data data.frame prepared plot data
-#' @param output_dir character output directory path
-#' @keywords internal
-generate_coverage_heatmap <- function(plot_data, output_dir) {
-  tryCatch({
-    # Determine count column
-    count_col <- if ("visible_count" %in% names(plot_data)) {
-      "visible_count"
-    } else if ("visible_satellites" %in% names(plot_data)) {
-      plot_data <- plot_data %>%
-        mutate(visible_count = map_dbl(visible_satellites, count_satellites_from_string))
-      "visible_count"
-    } else {
-      stop("No count data available")
-    }
-    
-    # Calculate analysis duration
-    duration_minutes <- nrow(plot_data)
-    hours <- duration_minutes %/% 60
-    minutes <- duration_minutes %% 60
-    
-    if (hours == 0) {
-      # For analysis less than 1 hour, create minute-based heatmap
-      heatmap_data <- plot_data %>%
-        mutate(
-          hour_group = "00:00",
-          minute = sprintf("%02d", time_minutes)
-        ) %>%
-        select(hour_group, minute, count = all_of(count_col))
-      
-      # Create plotly heatmap
-      p <- plot_ly(
-        data = heatmap_data,
-        x = ~minute,
-        y = ~hour_group,
-        z = ~count,
-        type = "heatmap",
-        colorscale = "Viridis",
-        hovertemplate = "Time: %{y}:%{x}<br>Visible Satellites: %{z}<extra></extra>"
-      ) %>%
-        layout(
-          title = paste("Satellite Coverage Heatmap (", minutes, " minutes analysis)"),
-          xaxis = list(title = "Minutes"),
-          yaxis = list(title = ""),
-          font = list(family = "Arial", size = 12)
-        )
-      
-    } else {
-      # For longer analysis, create hour-minute based heatmap
-      heatmap_data <- plot_data %>%
-        mutate(
-          hour = time_minutes %/% 60,
-          minute = time_minutes %% 60,
-          hour_label = sprintf("%02d:00", hour)
-        ) %>%
-        select(hour_label, minute, count = all_of(count_col))
-      
-      # Create matrix for heatmap
-      heatmap_matrix <- heatmap_data %>%
-        complete(hour_label, minute = 0:59, fill = list(count = 0)) %>%
-        arrange(hour_label, minute) %>%
-        pivot_wider(names_from = minute, values_from = count, values_fill = 0) %>%
-        column_to_rownames("hour_label") %>%
-        as.matrix()
-      
-      # Create plotly heatmap
-      p <- plot_ly(
-        z = ~heatmap_matrix,
-        x = ~colnames(heatmap_matrix),
-        y = ~rownames(heatmap_matrix),
-        type = "heatmap",
-        colorscale = "Viridis",
-        hovertemplate = "Time: %{y}:%{x}<br>Visible Satellites: %{z}<extra></extra>"
-      ) %>%
-        layout(
-          title = paste("Satellite Coverage Heatmap (", hours, "h", minutes, "m analysis)"),
-          xaxis = list(title = "Minutes"),
-          yaxis = list(title = "Hours"),
-          font = list(family = "Arial", size = 12),
-          height = 800
-        )
-    }
-    
-    # Save interactive heatmap
-    output_path <- file.path(output_dir, "coverage_heatmap.html")
-    htmlwidgets::saveWidget(p, output_path, selfcontained = TRUE)
-    
-    message(paste("✅ Coverage heatmap saved to:", output_path))
-    
-  }, error = function(e) {
-    warning(paste("Error generating heatmap:", e$message))
-    generate_empty_heatmap(output_dir)
-  })
-}
-
 #' Generate Empty Plots for Error Cases
 #' 
 #' @description 
@@ -407,7 +304,6 @@ generate_coverage_heatmap <- function(plot_data, output_dir) {
 generate_empty_plots <- function(output_dir) {
   generate_empty_satellite_plot(output_dir)
   generate_empty_elevation_plot(output_dir)
-  generate_empty_heatmap(output_dir)
 }
 
 #' Generate Empty Satellite Plot
@@ -438,26 +334,6 @@ generate_empty_elevation_plot <- function(output_dir) {
   
   ggsave(file.path(output_dir, "elevation_timeline.png"), 
          plot = p, width = 12, height = 6, dpi = 300, bg = "white")
-}
-
-#' Generate Empty Heatmap
-#' @keywords internal
-generate_empty_heatmap <- function(output_dir) {
-  p <- plot_ly() %>%
-    add_annotations(
-      text = "No data available for heatmap",
-      x = 0.5, y = 0.5,
-      showarrow = FALSE,
-      font = list(size = 20, color = "#7f8c8d")
-    ) %>%
-    layout(
-      title = "Satellite Coverage Heatmap (No Data)",
-      xaxis = list(visible = FALSE),
-      yaxis = list(visible = FALSE)
-    )
-  
-  htmlwidgets::saveWidget(p, file.path(output_dir, "coverage_heatmap.html"), 
-                         selfcontained = TRUE)
 }
 
 #' Generate HTML Report using R Markdown
@@ -530,8 +406,7 @@ generate_html_report_r <- function(data_dir,
       stats_file = "coverage_stats.json",
       coverage_file = "coverage_data.csv",
       sat_timeline_plot = "visible_satellites_timeline.png",
-      elev_timeline_plot = "elevation_timeline.png",
-      heatmap_plot = "coverage_heatmap.html"
+      elev_timeline_plot = "elevation_timeline.png"
     )
     
     # 確保 output_dir 是絕對路徑並且存在 (雖然之前已經檢查和創建過)
@@ -627,8 +502,7 @@ analyze_coverage_data_r <- function(coverage_file, output_dir = "output") {
         "coverage_stats.json",
         "coverage_data.csv",
         "visible_satellites_timeline.png",
-        "elevation_timeline.png",
-        "coverage_heatmap.html"
+        "elevation_timeline.png"
     )
     
     for (fname in files_to_verify_for_rmd) {

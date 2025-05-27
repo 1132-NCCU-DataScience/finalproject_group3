@@ -552,228 +552,74 @@ class StarlinkAnalysis:
         if self.progress_output: self._print_progress(92, "結果保存完成")
     
     def generate_visualizations(self):
-        if self.progress_output: self._print_progress(93, "正在生成視覺化圖表...")
-        # 嘗試從文件載入覆蓋率數據
-        coverage_file = os.path.join(self.output_dir, 'coverage_data.csv')
-        if os.path.exists(coverage_file):
-            coverage_df = pd.read_csv(coverage_file)
-        else:
-            # 檢查是否已執行分析
-            if not hasattr(self, 'coverage_df'):
-                print("請先執行分析或確保 coverage_data.csv 文件存在")
-                return
-            coverage_df = self.coverage_df
-            
-        # 檢查資料是否為空
-        if coverage_df.empty:
-            print("警告：資料為空，無法生成視覺化")
-            # 生成空的圖片文件以確保R應用程式不會出錯
-            for filename in ["elevation_timeline.png", "visible_satellites_timeline.png"]:
-                plt.figure(figsize=(12, 6))
-                plt.title('無數據可顯示')
-                plt.text(0.5, 0.5, '沒有可用的衛星數據', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
-                plt.tight_layout()
-                plt.savefig(f"{self.output_dir}/{filename}", dpi=300)
-                plt.close()
+        if self.progress_output: self._print_progress(90, "正在生成視覺化圖表...")
+        print("正在生成視覺化圖表...")
+        
+        # 確保覆蓋數據已載入
+        if not hasattr(self, 'coverage_df') or self.coverage_df.empty:
+            print("警告: 覆蓋數據為空或未載入，無法生成圖表。")
+            self._generate_empty_plot("visible_satellites_timeline.png", "可見衛星數量時間序列圖 (無數據)")
+            self._generate_empty_plot("elevation_timeline.png", "衛星最大仰角時間序列圖 (無數據)")
             return
 
-        # 生成可見衛星數量時間線圖
-        # 檢查正確的欄位
-        count_column = None
-        if 'visible_count' in coverage_df.columns and not coverage_df['visible_count'].isnull().all():
-            count_column = 'visible_count'
-        elif 'visible_satellites' in coverage_df.columns and not coverage_df['visible_satellites'].isnull().all():
-            # 嘗試從 visible_satellites 解析數量
-            print("警告：使用 visible_satellites 欄位生成時間線圖，嘗試解析數量...")
-            def count_satellites(sat_string):
-                try:
-                    if pd.isna(sat_string) or sat_string == '':
-                        return 0
-                    if sat_string.startswith('[') and sat_string.endswith(']'):
-                        return sat_string.count("'name':")
-                    return 0
-                except:
-                    return 0
-            coverage_df['visible_count'] = coverage_df['visible_satellites'].apply(count_satellites)
-            count_column = 'visible_count'
+        self._generate_timeline_plot(
+            self.coverage_df, 
+            'visible_count', 
+            '可見衛星數量時間序列圖', 
+            '可見衛星數量 (個)', 
+            'visible_satellites_timeline.png'
+        )
+        self._generate_timeline_plot(
+            self.coverage_df, 
+            'elevation', 
+            '衛星最大仰角時間序列圖', 
+            '最大仰角 (度)', 
+            'elevation_timeline.png'
+        )
         
-        if count_column is not None:
-            plt.figure(figsize=(12, 6))
-            # 創建時間索引
-            time_indices = range(len(coverage_df))
-            plt.plot(time_indices, coverage_df[count_column])
-            # 使用中文字體函數
-            plot_with_chinese_font('Visible Starlink Satellites in Taipei', 'Time (minutes)', 'Number of Visible Satellites')
-            plt.grid(True, linestyle='--', alpha=0.7)
-            
-            # 設置X軸刻度，每5分鐘一個刻度
-            if len(coverage_df) > 20:
-                step = max(1, len(coverage_df) // 10)  # 不超過10個刻度
-                plt.xticks(time_indices[::step])
-            
-            plt.tight_layout()
-            timeline_plot_path = os.path.join(self.output_dir, 'visible_satellites_timeline.png')
-            plt.savefig(timeline_plot_path)
-            plt.close()
-            print(f"可見衛星數量時間線圖已保存到 {timeline_plot_path}")
-            if self.progress_output: self._print_output_file('visible_satellites_timeline.png')
-        else:
-            print("警告：缺少可見衛星數量數據，無法生成可見衛星數量圖")
-            plt.figure(figsize=(12, 6))
-            # 使用中文字體函數
-            plot_with_chinese_font('Visible Starlink Satellites in Taipei (No Data)', 'Time Point', 'Number of Visible Satellites')
-            plt.text(0.5, 0.5, 'Missing visible satellite count data', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
-            plt.tight_layout()
-            plt.savefig(f"{self.output_dir}/visible_satellites_timeline.png", dpi=300)
-            plt.close()
+        # 熱力圖相關邏輯已移除
+        # self._generate_heatmap(self.coverage_df)
 
-        # 生成最大仰角時間線圖
-        if 'elevation' in coverage_df.columns and not coverage_df['elevation'].isnull().all():
-            plt.figure(figsize=(12, 6))
-            # 創建時間索引
-            time_indices = range(len(coverage_df))
-            plt.plot(time_indices, coverage_df['elevation'])
-            # 使用中文字體函數
-            plot_with_chinese_font('Maximum Satellite Elevation Over Time', 'Time (minutes)', 'Maximum Elevation (degrees)')
-            plt.grid(True, linestyle='--', alpha=0.7)
-            
-            # 設置X軸刻度，每5分鐘一個刻度
-            if len(coverage_df) > 20:
-                step = max(1, len(coverage_df) // 10)  # 不超過10個刻度
-                plt.xticks(time_indices[::step])
-            
-            plt.tight_layout()
-            elevation_plot_path = os.path.join(self.output_dir, 'elevation_timeline.png')
-            plt.savefig(elevation_plot_path)
-            plt.close()
-            print(f"衛星最大仰角時間線圖已保存到 {elevation_plot_path}")
-            if self.progress_output: self._print_output_file('elevation_timeline.png')
-        else:
-            print("警告：缺少 elevation 數據或數據全為 NaN，無法生成仰角圖")
-            plt.figure(figsize=(12, 6))
-            # 使用中文字體函數
-            plot_with_chinese_font('Maximum Satellite Elevation Over Time (No Data)', 'Time', 'Maximum Elevation (degrees)')
-            plt.text(0.5, 0.5, 'Missing elevation data', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
-            plt.tight_layout()
-            plt.savefig(f"{self.output_dir}/elevation_timeline.png", dpi=300)
-            plt.close()
+        print("視覺化圖表生成完成。")
+        if self.progress_output: self._print_progress(95, "視覺化圖表生成完成。")
 
-        # 生成熱力圖
-        self._generate_heatmap(coverage_df)
-
-        print("視覺化生成完成")
-        if self.progress_output: self._print_progress(94, "時間線圖表生成完畢")
-        
-    def _generate_heatmap(self, coverage_df):
-        if self.progress_output: self._print_progress(96, "正在生成熱力圖...")
+    def _generate_timeline_plot(self, coverage_df, column, title, xlabel, filename):
+        if self.progress_output: self._print_progress(96, f"正在生成 {title}...")
         try:
-            # 檢查必要欄位是否存在
-            if 'visible_count' not in coverage_df.columns:
-                # 如果沒有 visible_count，但有 visible_satellites，嘗試計算
-                if 'visible_satellites' in coverage_df.columns:
-                    print("警告：找不到 visible_count 欄位，嘗試從 visible_satellites 計算...")
-                    # 嘗試解析 visible_satellites 字串來計算數量
-                    def count_satellites(sat_string):
-                        try:
-                            if pd.isna(sat_string) or sat_string == '':
-                                return 0
-                            # 如果是列表字串，計算項目數量
-                            if sat_string.startswith('[') and sat_string.endswith(']'):
-                                # 簡單計算 'name': 出現的次數
-                                return sat_string.count("'name':")
-                            return 0
-                        except:
-                            return 0
-                    
-                    coverage_df['visible_count'] = coverage_df['visible_satellites'].apply(count_satellites)
-                else:
-                    raise ValueError("找不到可見衛星數量數據")
-            
-            # 獲取分析持續時間（分鐘）
-            duration_minutes = len(coverage_df)
-            
-            # 計算小時和分鐘
-            hours = duration_minutes // 60
-            minutes = duration_minutes % 60
-            
-            if hours == 0:
-                # 如果分析時間少於一小時，只顯示分鐘
-                # 創建熱力圖的基本數據
-                data = np.zeros((1, minutes))
+            # 檢查正確的欄位
+            if column in coverage_df.columns and not coverage_df[column].isnull().all():
+                plt.figure(figsize=(12, 6))
+                # 創建時間索引
+                time_indices = range(len(coverage_df))
+                plt.plot(time_indices, coverage_df[column])
+                # 使用中文字體函數
+                plot_with_chinese_font(title, xlabel, 'Number of Visible Satellites')
+                plt.grid(True, linestyle='--', alpha=0.7)
                 
-                # 遍歷每個時間點，填充數據
-                for i, row in coverage_df.iterrows():
-                    if i >= minutes:
-                        break
-                    data[0, i] = row['visible_count']  # 使用 visible_count 而不是 visible_satellites
+                # 設置X軸刻度，每5分鐘一個刻度
+                if len(coverage_df) > 20:
+                    step = max(1, len(coverage_df) // 10)  # 不超過10個刻度
+                    plt.xticks(time_indices[::step])
                 
-                # 創建時間標籤
-                hour_labels = ["00:00"]
-                
-                # 創建熱力圖
-                fig = px.imshow(data,
-                            labels=dict(x="分鐘", y="", color="可見衛星數"),
-                            x=[f"{m:02d}" for m in range(minutes)],
-                            y=hour_labels,
-                            title=f"衛星覆蓋熱力圖 ({minutes}分鐘分析)",
-                            color_continuous_scale="Viridis",
-                            aspect="auto")
-                
+                plt.tight_layout()
+                timeline_plot_path = os.path.join(self.output_dir, filename)
+                plt.savefig(timeline_plot_path)
+                plt.close()
+                print(f"{title}已保存到 {timeline_plot_path}")
+                if self.progress_output: self._print_output_file(filename)
             else:
-                # 創建熱力圖的基本數據
-                data = np.zeros((hours+1, 60))
-                
-                # 遍歷每個時間點，填充數據
-                for i, row in coverage_df.iterrows():
-                    if i >= duration_minutes:
-                        break
-                        
-                    hour = i // 60
-                    minute = i % 60
-                    data[hour, minute] = row['visible_count']  # 使用 visible_count 而不是 visible_satellites
-                
-                # 創建時間標籤
-                hour_labels = [f"{h:02d}:00" for h in range(hours+1)]
-                
-                # 創建熱力圖
-                fig = px.imshow(data,
-                            labels=dict(x="分鐘", y="小時", color="可見衛星數"),
-                            x=[f"{m:02d}" for m in range(60)],
-                            y=hour_labels,
-                            title=f"衛星覆蓋熱力圖 ({hours}小時{minutes}分鐘分析)",
-                            color_continuous_scale="Viridis",
-                            aspect="auto")
-            
-            # 增加交互元素
-            fig.update_traces(
-                hovertemplate="時間: %{y}:%{x}<br>可見衛星數: %{z}<extra></extra>"
-            )
-            
-            # 調整布局
-            fig.update_layout(
-                autosize=True,
-                height=800,
-                margin=dict(t=50, l=50, b=50, r=50),
-                font=dict(family="Arial", size=12),
-            )
-            
-            # 保存為HTML文件
-            heatmap_path = os.path.join(self.output_dir, 'coverage_heatmap.html')
-            fig.write_html(heatmap_path)
-            print(f"覆蓋熱力圖已保存到 {heatmap_path}")
-            if self.progress_output: self._print_output_file('coverage_heatmap.html')
-            
+                print(f"警告：缺少 {column} 數據，無法生成 {title}")
         except Exception as e:
-            print(f"生成熱力圖時出錯: {e}")
+            print(f"生成{title}時出錯: {e}")
             import traceback
             traceback.print_exc()  # 添加詳細錯誤信息
             # 創建一個簡單的錯誤頁面
-            with open(f"{self.output_dir}/coverage_heatmap.html", 'w') as f:
+            with open(f"{self.output_dir}/{filename}", 'w') as f:
                 f.write("""
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>覆蓋率熱力圖</title>
+                    <title>{title}</title>
                     <style>
                         body { 
                             font-family: 'Noto Sans TC', Arial, sans-serif; 
@@ -781,30 +627,30 @@ class StarlinkAnalysis:
                             margin-top: 50px;
                             background-color: #f8f9fa;
                         }
-                        .error-box {
+                        .error-box {{
                             max-width: 600px;
                             margin: 0 auto;
                             background: white;
                             border-radius: 8px;
                             padding: 30px;
                             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        h2 {
+                        }}
+                        h2 {{
                             color: #e74c3c;
-                        }
+                        }}
                     </style>
                 </head>
                 <body>
                     <div class="error-box">
-                        <h2>覆蓋率熱力圖</h2>
-                        <p>生成熱力圖時發生錯誤。請檢查日誌了解詳情。</p>
+                        <h2>{title}</h2>
+                        <p>生成圖表時發生錯誤。請檢查日誌了解詳情。</p>
                         <p>錯誤信息: """ + str(e) + """</p>
                     </div>
                 </body>
                 </html>
                 """)
-        if self.progress_output: self._print_progress(97, "熱力圖生成完畢")
-    
+        if self.progress_output: self._print_progress(97, f"{title}生成完成")
+
     def export_html_report(self):
         if self.progress_output: self._print_progress(98, "正在導出HTML報告...")
         # 嘗試從文件載入覆蓋率數據
@@ -817,7 +663,7 @@ class StarlinkAnalysis:
             # 檢查是否已執行分析
             if not hasattr(self, 'coverage_df'):
                 print("請先執行分析或確保 coverage_data.csv 文件存在")
-                report_path = os.path.join(self.output_dir, 'report.html')
+                report_path = os.path.join(self.output_dir, 'report.html') # 保持 report.html
                 self._generate_empty_report(report_path)
                 return report_path
             coverage_df = self.coverage_df
@@ -833,12 +679,13 @@ class StarlinkAnalysis:
         # 檢查資料是否為空
         if coverage_df.empty:
             print("警告：資料為空，無法生成 HTML 報告")
-            report_path = os.path.join(self.output_dir, 'report.html')
+            report_path = os.path.join(self.output_dir, 'report.html') # 保持 report.html
             self._generate_empty_report(report_path)
             return report_path
             
         # 生成HTML報告
-        report_path = os.path.join(self.output_dir, 'report.html')
+        report_path = os.path.join(self.output_dir, 'report.html') # 保持 report.html
+        # _generate_html_report 不再需要 heatmap_filename 參數
         self._generate_html_report(report_path, coverage_df, stats)
         print(f"HTML報告已保存至 {report_path}")
         if self.progress_output: self._print_output_file('report.html')
@@ -856,20 +703,20 @@ class StarlinkAnalysis:
             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
             <style>
-                body {
+                body {{
                     font-family: 'Noto Sans TC', sans-serif;
                     line-height: 1.6;
                     margin: 0;
                     padding: 0;
                     color: #333;
                     background-color: #f5f7fa;
-                }
-                .container {
+                }}
+                .container {{
                     max-width: 1200px;
                     margin: 0 auto;
                     padding: 20px;
-                }
-                header {
+                }}
+                header {{
                     background-color: #e74c3c;
                     color: white;
                     padding: 20px 0;
@@ -877,13 +724,13 @@ class StarlinkAnalysis:
                     border-radius: 8px;
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                     text-align: center;
-                }
-                h1 {
+                }}
+                h1 {{
                     margin: 0;
                     font-size: 2.5em;
                     font-weight: 700;
-                }
-                .warning-box {
+                }}
+                .warning-box {{
                     background-color: white;
                     border-radius: 8px;
                     padding: 30px;
@@ -891,29 +738,29 @@ class StarlinkAnalysis:
                     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                     text-align: center;
                     max-width: 600px;
-                }
-                .warning-icon {
+                }}
+                .warning-icon {{
                     font-size: 60px;
                     color: #e74c3c;
                     margin-bottom: 20px;
-                }
-                .warning {
+                }}
+                .warning {{
                     color: #e74c3c;
                     font-size: 1.5em;
                     font-weight: 700;
                     margin-bottom: 20px;
-                }
-                .message {
+                }}
+                .message {{
                     font-size: 1.1em;
                     color: #7f8c8d;
-                }
-                footer {
+                }}
+                footer {{
                     text-align: center;
                     margin-top: 50px;
                     padding: 20px;
                     color: #7f8c8d;
                     font-size: 0.9em;
-                }
+                }}
             </style>
         </head>
         <body>
@@ -1049,59 +896,46 @@ class StarlinkAnalysis:
                     margin-top: 30px;
                 }}
                 .stats-container {{
-                    display: flex;
-                    flex-wrap: wrap;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                     gap: 20px;
-                    margin-bottom: 40px;
+                    margin-bottom: 30px;
                 }}
                 .stat-card {{
-                    background-color: white;
+                    background-color: #fff;
                     border-radius: 8px;
                     padding: 20px;
-                    flex: 1 1 220px;
                     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                    transition: transform 0.3s, box-shadow 0.3s;
-                }}
-                .stat-card:hover {{
-                    transform: translateY(-5px);
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                    text-align: center;
                 }}
                 .stat-title {{
-                    font-size: 1em;
-                    color: #7f8c8d;
+                    font-size: 1.1em;
+                    color: #555;
                     margin-bottom: 10px;
-                    display: flex;
-                    align-items: center;
                 }}
                 .stat-title i {{
                     margin-right: 8px;
                     color: #3498db;
                 }}
                 .stat-value {{
-                    font-size: 2.2em;
+                    font-size: 2em;
                     font-weight: 700;
-                    color: #2980b9;
+                    color: #3498db;
                 }}
                 .visualization-container {{
-                    background-color: white;
-                    border-radius: 8px;
+                    margin-bottom: 40px;
                     padding: 20px;
-                    margin-bottom: 30px;
+                    background-color: #fff;
+                    border-radius: 8px;
                     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                 }}
-                img {{
+                .visualization-container img {{
                     max-width: 100%;
                     height: auto;
                     border-radius: 8px;
                     display: block;
                     margin: 20px auto;
                     border: 1px solid #eee;
-                }}
-                iframe {{
-                    width: 100%;
-                    border: none;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
                 }}
                 .analysis-params {{
                     background-color: #eef2f5;
@@ -1175,11 +1009,6 @@ class StarlinkAnalysis:
                 <div class="visualization-container">
                     <h3><i class="fas fa-angle-up"></i> 最佳衛星仰角時間線</h3>
                     <img src="./elevation_timeline.png" alt="最佳衛星仰角時間線">
-                </div>
-                
-                <div class="visualization-container">
-                    <h3><i class="fas fa-fire"></i> 衛星覆蓋熱力圖</h3>
-                    <iframe src="./coverage_heatmap.html" width="100%" height="600px"></iframe>
                 </div>
                 
                 <footer>

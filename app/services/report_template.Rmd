@@ -138,18 +138,86 @@ if (file.exists(abs_elev_plot_path)) {
 }
 ```
 
-### 3.3 衛星覆蓋熱力圖
+### 3.3 覆蓋品質詳細統計表
 
-下方為一個互動式熱力圖，展示了在不同時間點（小時和分鐘）的可見衛星數量。顏色越深表示可見衛星越多。
+下表提供了更詳細的衛星覆蓋品質統計數據，幫助您評估連接的穩定性。
 
-```{r heatmap_interactive, results='asis'}
-# 熱力圖使用 iframe 嵌入，指向相對路徑
-heatmap_filename <- params$heatmap_plot  # 例如 "coverage_heatmap.html"
-if (file.exists(abs_heatmap_path)) {
-  cat(paste0('<iframe src="', heatmap_filename, '" width="100%" height="600px" frameborder="0"></iframe>'))
-} else {
-  cat("覆蓋熱力圖檔案未找到。")
-}
+```{r coverage_quality_stats}
+# 確保 coverage_data 已完整載入 (不只是樣本)
+full_coverage_data <- read_csv(abs_coverage_path, show_col_types = FALSE)
+
+# 總分析時長 (分鐘)
+total_duration_minutes <- nrow(full_coverage_data) # 假設每行為一分鐘的數據
+
+# 定義覆蓋閾值
+good_coverage_threshold <- 4
+no_coverage_threshold <- 0
+
+# 計算良好覆蓋時間和百分比
+good_coverage_minutes <- sum(full_coverage_data$visible_count >= good_coverage_threshold)
+good_coverage_percentage <- (good_coverage_minutes / total_duration_minutes) * 100
+
+# 計算訊號中斷時間和百分比
+no_coverage_minutes <- sum(full_coverage_data$visible_count == no_coverage_threshold)
+no_coverage_percentage <- (no_coverage_minutes / total_duration_minutes) * 100
+
+# 計算最長連續良好覆蓋時間
+rle_good_coverage <- rle(full_coverage_data$visible_count >= good_coverage_threshold)
+max_continuous_good_coverage <- if (any(rle_good_coverage$values)) max(rle_good_coverage$lengths[rle_good_coverage$values], na.rm = TRUE) else 0
+
+# 計算最長連續訊號中斷時間
+rle_no_coverage <- rle(full_coverage_data$visible_count == no_coverage_threshold)
+max_continuous_no_coverage <- if (any(rle_no_coverage$values)) max(rle_no_coverage$lengths[rle_no_coverage$values], na.rm = TRUE) else 0
+
+# 可見衛星數量分佈
+sat_counts_distribution <- full_coverage_data %>%
+  mutate(
+    category = case_when(
+      visible_count == 0 ~ "0 顆 (無訊號)",
+      visible_count >= 1 & visible_count <= 3 ~ "1-3 顆 (訊號弱)",
+      visible_count == 4 ~ "4 顆 (基本穩定)",
+      visible_count >= 5 & visible_count <= 7 ~ "5-7 顆 (良好)",
+      visible_count >= 8 ~ "8+ 顆 (極佳)"
+    )
+  ) %>%
+  count(category) %>%
+  mutate(
+    percentage = (n / total_duration_minutes) * 100,
+    category = factor(category, levels = c("0 顆 (無訊號)", "1-3 顆 (訊號弱)", "4 顆 (基本穩定)", "5-7 顆 (良好)", "8+ 顆 (極佳)"))
+  ) %>%
+  arrange(category)
+
+# 創建統計數據框
+quality_stats_df <- data.frame(
+  指標 = c(
+    "總分析時長 (分鐘)",
+    paste0("良好覆蓋時間 (≥", good_coverage_threshold, "顆衛星, 分鐘)"),
+    paste0("良好覆蓋時間百分比 (≥", good_coverage_threshold, "顆衛星, %)"),
+    "訊號中斷時間 (0顆衛星, 分鐘)",
+    "訊號中斷時間百分比 (0顆衛星, %)",
+    "最長連續良好覆蓋 (分鐘)",
+    "最長連續訊號中斷 (分鐘)"
+  ),
+  數值 = c(
+    total_duration_minutes,
+    good_coverage_minutes,
+    sprintf("%.2f", good_coverage_percentage),
+    no_coverage_minutes,
+    sprintf("%.2f", no_coverage_percentage),
+    max_continuous_good_coverage,
+    max_continuous_no_coverage
+  )
+)
+
+# 添加衛星數量分佈到表格
+distribution_df <- data.frame(
+  指標 = paste0("時間佔比 (", sat_counts_distribution$category, ")"),
+  數值 = sprintf("%.2f%%", sat_counts_distribution$percentage)
+)
+
+combined_stats_df <- rbind(quality_stats_df, distribution_df)
+
+kable(combined_stats_df, caption = "覆蓋品質詳細統計", col.names = c("統計項目", "數值"), align = "l")
 ```
 
 ## 4. 原始數據樣本
