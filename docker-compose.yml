@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  starlink-shiny:
+    build: .
+    container_name: starlink-taipei
+    ports:
+      - "3838:3838"
+    volumes:
+      # 掛載輸出目錄到主機，保存分析結果
+      - ./output:/app/output
+      # 掛載數據目錄（如果需要）
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Taipei
+      - LANG=zh_TW.UTF-8
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3838/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  default:
+    name: starlink-network 

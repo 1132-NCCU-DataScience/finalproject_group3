@@ -5,7 +5,6 @@ tqdm
 scipy
 plotly>=5.0
 requests
-flask
 skyfield==1.46
 ephem
 pygc 

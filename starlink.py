@@ -8,7 +8,7 @@
 import argparse
 import sys
 import os
-import subprocess # Added for running Flask app
+import subprocess
 from pathlib import Path
 
 def main():
@@ -19,16 +19,15 @@ def main():
 使用範例:
   %(prog)s analyze --duration 30     # 執行30分鐘分析
   %(prog)s analyze --quick           # 快速10分鐘分析
-  %(prog)s view                      # 查看結果 (現在由 web 指令處理)
+  %(prog)s shiny                     # 啟動 Shiny 網頁介面
   %(prog)s health                    # 健康檢查
-  %(prog)s web                       # 啟動互動式網頁服務器
         """
     )
     
     subparsers = parser.add_subparsers(dest='command', help='可用指令', required=True)
     
     # 分析指令
-    analyze_parser = subparsers.add_parser('analyze', help='執行衛星覆蓋分析 (結果會自動更新到網頁)')
+    analyze_parser = subparsers.add_parser('analyze', help='執行衛星覆蓋分析')
     analyze_parser.add_argument('--duration', type=int, default=30, 
                                help='分析時間長度（分鐘），預設30分鐘')
     analyze_parser.add_argument('--quick', action='store_true',
@@ -37,36 +36,37 @@ def main():
                                help='時間間隔（分鐘），預設1.0分鐘')
     analyze_parser.add_argument('--min_elevation', type=float, default=25.0, 
                                 help='最小衛星仰角閾值（度），預設25.0度')
-    analyze_parser.add_argument('--cpu', type=int, default=None, help='用於並行處理的 CPU 核心數 (預設使用所有可用核心)')
-    
-    # 查看結果指令 (保留但提示使用 web)
-    subparsers.add_parser('view', help='提示: 請使用 "web" 指令啟動網頁查看結果')
+    analyze_parser.add_argument('--cpu', type=int, default=None, 
+                               help='用於並行處理的 CPU 核心數 (預設使用所有可用核心)')
+    analyze_parser.add_argument('--lat', type=float, default=25.0330,
+                               help='觀察者緯度，預設台北')
+    analyze_parser.add_argument('--lon', type=float, default=121.5654,
+                               help='觀察者經度，預設台北')
     
     # 健康檢查指令
     subparsers.add_parser('health', help='系統健康檢查')
     
-    # 網頁服務器指令
-    web_parser = subparsers.add_parser('web', help='啟動互動式網頁服務器')
-    web_parser.add_argument('--port', type=int, default=8080,
-                           help='網頁服務器端口，預設8080')
-    web_parser.add_argument('--host', type=str, default='0.0.0.0',
-                           help='網頁服務器監聽地址，預設0.0.0.0')
-    
-    # 更新指令 (現已整合到網頁後端)
-    # subparsers.add_parser('update', help='更新主頁面數據 (現已自動化)')
+    # Shiny 網頁介面指令
+    shiny_parser = subparsers.add_parser('shiny', help='啟動 Shiny 網頁介面')
+    shiny_parser.add_argument('--port', type=int, default=3838,
+                             help='Shiny 應用端口，預設3838')
+    shiny_parser.add_argument('--host', type=str, default='0.0.0.0',
+                             help='監聽地址，預設0.0.0.0')
     
     args = parser.parse_args()
         
     try:
         if args.command == 'analyze':
             duration = 10 if args.quick else args.duration
-            print(f"🛰️  從命令行啟動 {duration} 分鐘分析...")
-            print("   分析完成後，結果將自動顯示於網頁界面 (如果正在運行)。")
+            print(f"🛰️  執行 {duration} 分鐘分析...")
+            
             cmd_parts = [
-                sys.executable, os.path.join("app", "services", "analysis_service.py"), 
+                sys.executable, "satellite_analysis.py", 
                 "--duration", str(duration), 
                 "--interval", str(args.interval),
-                "--min_elevation", str(args.min_elevation)
+                "--min_elevation", str(args.min_elevation),
+                "--lat", str(args.lat),
+                "--lon", str(args.lon)
             ]
             if args.cpu is not None:
                 cmd_parts.extend(["--cpu", str(args.cpu)])
@@ -74,64 +74,124 @@ def main():
             process = subprocess.run(cmd_parts, capture_output=True, text=True, check=False)
             if process.returncode == 0:
                 print("✅ 分析腳本執行完成。")
-                print("標準輸出:")
-                print(process.stdout)
+                if process.stdout:
+                    print("輸出:")
+                    print(process.stdout)
             else:
                 print("❌ 分析腳本執行失敗。")
-                print("錯誤輸出:")
-                print(process.stderr)
-            
-        elif args.command == 'view':
-            print("ℹ️  提示: 若要查看結果，請使用 `python starlink.py web` 啟動網頁服務器並在瀏覽器中訪問。")
+                if process.stderr:
+                    print("錯誤:")
+                    print(process.stderr)
             
         elif args.command == 'health':
             print("🏥 執行系統健康檢查...")
-            # Define potential paths for health_check.py
-            script_dir = os.path.dirname(__file__) # Directory of starlink.py
-            paths_to_check = [
-                os.path.join(script_dir, "utils", "health_check.py"),
-                os.path.join(script_dir, "app", "utils", "health_check.py"),
-                os.path.join(script_dir, "scripts", "health_check.py"), # If you create a scripts/ dir for such utilities
-                os.path.join(script_dir, "health_check.py") # If it's moved to the root alongside starlink.py
+            
+            # 檢查 Python 依賴
+            python_deps = [
+                'numpy', 'pandas', 'matplotlib', 'skyfield', 
+                'requests', 'tqdm', 'plotly', 'scipy'
             ]
             
-            health_check_script = None
-            for path in paths_to_check:
-                if os.path.exists(path):
-                    health_check_script = path
-                    break
+            print("\n📦 檢查 Python 依賴套件:")
+            for dep in python_deps:
+                try:
+                    __import__(dep)
+                    print(f"  ✅ {dep}")
+                except ImportError:
+                    print(f"  ❌ {dep} (未安裝)")
             
-            if health_check_script:
-                subprocess.run([sys.executable, health_check_script], check=False)
-            else:
-                print(f"❌ 錯誤: 找不到健康檢查腳本。已嘗試的路徑: {paths_to_check}")
-            
-        elif args.command == 'web':
-            print(f"🌐 啟動 Flask 網頁服務器於 http://{args.host}:{args.port}")
-            print("   請在瀏覽器中打開上述網址。按 Ctrl+C 停止服務器。")
+            # 檢查 R 是否可用
+            print("\n🔧 檢查 R 環境:")
             try:
-                run_script_path = os.path.join(os.path.dirname(__file__), "run.py")
-                run_script_path = os.path.abspath(run_script_path)
-
-                if not os.path.exists(run_script_path):
-                    print(f"❌ 錯誤: 找不到 Flask 啟動腳本 run.py。預期路徑: {run_script_path}")
+                r_result = subprocess.run(['R', '--version'], 
+                                        capture_output=True, text=True, timeout=10)
+                if r_result.returncode == 0:
+                    print("  ✅ R 環境可用")
+                else:
+                    print("  ❌ R 環境不可用")
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                print("  ❌ 找不到 R 或執行超時")
+            
+            # 檢查關鍵檔案
+            print("\n📁 檢查關鍵檔案:")
+            key_files = [
+                'satellite_analysis.py',
+                'app.R',
+                'ui.R', 
+                'server.R',
+                'R/analysis.R',
+                'R/plots.R'
+            ]
+            
+            for file_path in key_files:
+                if os.path.exists(file_path):
+                    print(f"  ✅ {file_path}")
+                else:
+                    print(f"  ❌ {file_path} (找不到)")
+            
+            # 檢查輸出目錄
+            print("\n📂 檢查目錄:")
+            output_dir = "output"
+            if os.path.exists(output_dir):
+                print(f"  ✅ {output_dir}/ 目錄存在")
+                files = os.listdir(output_dir)
+                if files:
+                    print(f"     包含 {len(files)} 個檔案")
+            else:
+                print(f"  ⚠️  {output_dir}/ 目錄不存在，將在首次運行時創建")
+            
+        elif args.command == 'shiny':
+            print(f"🌐 啟動 Shiny 網頁應用於 http://{args.host}:{args.port}")
+            print("   請在瀏覽器中打開上述網址。按 Ctrl+C 停止應用。")
+            
+            try:
+                # 檢查 app.R 是否存在
+                app_r_path = "app.R"
+                if not os.path.exists(app_r_path):
+                    print(f"❌ 錯誤: 找不到 Shiny 應用檔案 {app_r_path}")
                     sys.exit(1)
 
+                # 啟動 Shiny 應用
                 env = os.environ.copy()
-                env["PYTHONUNBUFFERED"] = "1"
+                env["R_SHINY_PORT"] = str(args.port)
+                env["R_SHINY_HOST"] = args.host
                 
-                process = subprocess.Popen([sys.executable, run_script_path, "--host", args.host, "--port", str(args.port)], env=env)
-                process.wait()
-            except KeyboardInterrupt:
-                print("\n⏹️  Flask 服務器已由用戶停止。")
-            finally:
-                if 'process' in locals() and process.poll() is None:
+                # 使用 R 命令啟動 Shiny 應用
+                r_command = f"""
+library(shiny)
+runApp(appDir=".", port={args.port}, host="{args.host}", launch.browser=FALSE)
+"""
+                
+                process = subprocess.Popen(
+                    ['R', '--slave', '-e', r_command], 
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    bufsize=1
+                )
+                
+                # 即時輸出 R 的回應
+                try:
+                    for line in process.stdout:
+                        print(line, end='')
+                        if "Listening on" in line:
+                            print(f"\n🎉 Shiny 應用已啟動！")
+                            print(f"   瀏覽器地址: http://{args.host}:{args.port}")
+                            
+                    process.wait()
+                except KeyboardInterrupt:
+                    print("\n⏹️  收到中斷信號，正在停止 Shiny 應用...")
                     process.terminate()
                     process.wait()
-            
-        # elif args.command == 'update': # Update command is removed
-        #     print("📊 更新主頁面數據... (此功能現由網頁後端自動處理)")
-        #     # subprocess.run(["python", "utils/update_index.py"])
+                    print("✅ Shiny 應用已停止。")
+                    
+            except FileNotFoundError:
+                print("❌ 錯誤: 找不到 R 命令。請確保 R 已安裝並在 PATH 中。")
+                sys.exit(1)
+            except Exception as e:
+                print(f"❌ 啟動 Shiny 應用時發生錯誤: {e}")
+                sys.exit(1)
             
     except KeyboardInterrupt:
         print("\n\n⏹️  用戶中斷操作")

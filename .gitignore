@@ -1,8 +1,12 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -19,9 +23,31 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
 
 # Environments
 .env
@@ -32,45 +58,59 @@ ENV/
 env.bak/
 venv.bak/
 
-# Output files
-output/202*/
-output/*.tle
-output/starlink*.tle
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Logs
-*.log
-logs/
-
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-~*
-
-# R
-.Rproj.user
+# R specific
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
-.Rapp.history
-.Renviron
-.Rprofile
-*-Ex.R
+*.Rproj
 
-# Generated reports and data in app/static
-app/static/report_r.html
-app/static/coverage_heatmap.html
-app/static/elevation_timeline.png
-app/static/visible_satellites_timeline.png
-app/static/coverage_data.csv
-app/static/coverage_stats.json
-app/static/*.tle 
+# Shiny specific
+rsconnect/
+.rsconnect/
+
+# Output directories
+output/
+reports/
+logs/
+data/cache/
+data/processed/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# TLE data files (they're downloaded automatically)
+*.tle
+starlink_latest.tle
+
+# Conda
+.conda/
+
+# Log files
+*.log
+app.log
+run.log
