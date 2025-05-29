@@ -1,0 +1,11 @@
+{
+    "avg_visible_satellites": 41.416666666666664,
+    "max_visible_satellites": 50,
+    "min_visible_satellites": 31,
+    "coverage_percentage": 100.0,
+    "analysis_duration_minutes": 60,
+    "observer_lat": 25.033,
+    "observer_lon": 121.5654,
+    "avg_elevation": 75.41189058194932,
+    "max_elevation": 87.18446816588869
+}
