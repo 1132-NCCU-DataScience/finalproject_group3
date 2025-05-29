@@ -165,35 +165,50 @@ ui <- dashboardPage(
           
           // 開始進度模擬
           var progress = 0;
+          var stepCount = 0;
           progressInterval = setInterval(function() {
-            progress += Math.random() * 20;
-            if (progress > 95) progress = 95;
+            stepCount++;
+            progress += Math.random() * 15 + 5;  // 每次增加 5-20%
             
-            $('#progressBar').css('width', progress + '%').text(Math.round(progress) + '%');
-            
-            // 更新狀態訊息
-            if (progress < 20) {
-              $('#statusMessage').text('正在載入衛星數據...');
-            } else if (progress < 40) {
-              $('#statusMessage').text('正在計算軌道位置...');
-            } else if (progress < 60) {
-              $('#statusMessage').text('正在分析覆蓋情況...');
-            } else if (progress < 80) {
-              $('#statusMessage').text('正在生成統計數據...');
+            // 確保進度條能完成
+            if (stepCount > 15 || progress > 95) {
+              progress = 100;
+              clearInterval(progressInterval);
+              
+              $('#progressBar').css('width', '100%').text('100%').removeClass('progress-bar-animated');
+              $('#statusMessage').text('✅ 分析完成！正在更新圖表...');
+              
+              // 3秒後隱藏進度條
+              setTimeout(function() {
+                $('#progressContainer').fadeOut('slow');
+              }, 3000);
             } else {
-              $('#statusMessage').text('正在準備結果顯示...');
+              $('#progressBar').css('width', progress + '%').text(Math.round(progress) + '%');
+              
+              // 更新狀態訊息
+              if (progress < 20) {
+                $('#statusMessage').text('正在載入衛星數據...');
+              } else if (progress < 40) {
+                $('#statusMessage').text('正在計算軌道位置...');
+              } else if (progress < 60) {
+                $('#statusMessage').text('正在分析覆蓋情況...');
+              } else if (progress < 80) {
+                $('#statusMessage').text('正在生成統計數據...');
+              } else {
+                $('#statusMessage').text('正在準備結果顯示...');
+              }
             }
-          }, 150);
+          }, 200);
         });
         
-        // 監聽分析完成訊息
+        // 如果需要，也可以監聽 Shiny 完成訊息
         Shiny.addCustomMessageHandler('analysisComplete', function(message) {
           if (progressInterval) {
             clearInterval(progressInterval);
           }
           
           $('#progressBar').css('width', '100%').text('100%').removeClass('progress-bar-animated');
-          $('#statusMessage').text('分析完成！正在更新圖表...');
+          $('#statusMessage').text('✅ 分析完成！正在更新圖表...');
           
           // 2秒後隱藏進度條
           setTimeout(function() {

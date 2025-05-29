@@ -25,7 +25,7 @@ create_satellites_timeline <- function(coverage_data) {
   coverage_data$time_minutes <- seq(0, nrow(coverage_data) - 1)
   
   p <- ggplot(coverage_data, aes(x = time_minutes, y = visible_count)) +
-    geom_line(color = "#3498db", size = 1.2, alpha = 0.8) +
+    geom_line(color = "#3498db", linewidth = 1.2, alpha = 0.8) +
     geom_point(color = "#2980b9", size = 1.5, alpha = 0.6) +
     geom_area(alpha = 0.3, fill = "#3498db") +
     labs(
@@ -66,7 +66,7 @@ create_elevation_timeline <- function(coverage_data) {
   coverage_data$time_minutes <- seq(0, nrow(coverage_data) - 1)
   
   p <- ggplot(coverage_data, aes(x = time_minutes, y = elevation)) +
-    geom_line(color = "#e74c3c", size = 1.2, alpha = 0.8) +
+    geom_line(color = "#e74c3c", linewidth = 1.2, alpha = 0.8) +
     geom_point(color = "#c0392b", size = 1.5, alpha = 0.6) +
     geom_area(alpha = 0.3, fill = "#e74c3c") +
     labs(
@@ -219,7 +219,7 @@ create_elevation_plot <- function(coverage_data) {
   coverage_data$time_minutes <- seq(0, nrow(coverage_data) - 1)
   
   p <- ggplot(coverage_data, aes(x = time_minutes, y = elevation)) +
-    geom_line(color = "#e74c3c", size = 1.2, alpha = 0.8) +
+    geom_line(color = "#e74c3c", linewidth = 1.2, alpha = 0.8) +
     geom_point(color = "#c0392b", size = 1, alpha = 0.6) +
     geom_area(alpha = 0.3, fill = "#e74c3c") +
     labs(

@@ -48,8 +48,8 @@ def main():
     
     # Shiny 網頁介面指令
     shiny_parser = subparsers.add_parser('shiny', help='啟動 Shiny 網頁介面')
-    shiny_parser.add_argument('--port', type=int, default=3838,
-                             help='Shiny 應用端口，預設3838')
+    shiny_parser.add_argument('--port', type=int, default=8080,
+                             help='Shiny 應用端口，預設8080')
     shiny_parser.add_argument('--host', type=str, default='0.0.0.0',
                              help='監聽地址，預設0.0.0.0')
     
