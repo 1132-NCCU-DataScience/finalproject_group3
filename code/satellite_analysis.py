@@ -26,6 +26,11 @@ from tqdm import tqdm
 from skyfield.api import load, wgs84, EarthSatellite, Loader
 from skyfield.timelib import Time
 from multiprocessing import cpu_count
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.preprocessing import StandardScaler
+from collections import deque
 
 # 忽略一些常見的警告
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -531,9 +536,10 @@ class StarlinkAnalysis:
         plots_paths = []
         
         try:
-            # 設置中文字體
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans']
+            # 設置中文字體支持
+            plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'PingFang TC', 'Hiragino Sans TC', 'Noto Sans CJK TC', 'SimHei', 'DejaVu Sans']
             plt.rcParams['axes.unicode_minus'] = False
+            plt.rcParams['font.family'] = 'sans-serif'
             
             # 1. 可見衛星數量時間線
             plt.figure(figsize=(12, 6))
@@ -617,15 +623,15 @@ class StarlinkAnalysis:
     
     def _generate_html_report(self, report_path, coverage_df, stats):
         """生成簡單的 HTML 報告"""
-        html_content = f"""
-<!DOCTYPE html>
+        html_content = f"""<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台北市 Starlink 衛星覆蓋分析報告</title>
     <style>
-        body {{ font-family: 'Microsoft JhengHei', sans-serif; margin: 20px; }}
+        body {{ font-family: 'Microsoft JhengHei', 'PingFang TC', 'Hiragino Sans TC', 'Noto Sans CJK TC', sans-serif; margin: 20px; }}
         .container {{ max-width: 1200px; margin: 0 auto; }}
         h1 {{ color: #2c3e50; text-align: center; }}
         .stats-container {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }}
@@ -671,12 +677,231 @@ class StarlinkAnalysis:
         </div>
     </div>
 </body>
-</html>
-"""
+</html>"""
         
-        with open(report_path, "w", encoding='utf-8') as f:
+        with open(report_path, "w", encoding='utf-8', newline='') as f:
             f.write(html_content)
         print(f"HTML 報告已生成到 {report_path}")
+
+class SelfAttention(nn.Module):
+    """自注意力機制模組"""
+    def __init__(self, d_model, n_heads=8):
+        super(SelfAttention, self).__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+        
+    def forward(self, x):
+        batch_size, seq_len, _ = x.size()
+        
+        Q = self.W_q(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        
+        attention_scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.d_k ** 0.5)
+        attention_weights = F.softmax(attention_scores, dim=-1)
+        attention_output = torch.matmul(attention_weights, V)
+        
+        attention_output = attention_output.transpose(1, 2).contiguous().view(
+            batch_size, seq_len, self.d_model)
+        
+        return self.W_o(attention_output)
+
+class SCINetBlock(nn.Module):
+    """SCINet 基礎模組 - 參考論文實現"""
+    def __init__(self, input_dim, hidden_dim, kernel_size=3):
+        super(SCINetBlock, self).__init__()
+        self.conv1 = nn.Conv1d(input_dim, hidden_dim, kernel_size, padding=kernel_size//2)
+        self.conv2 = nn.Conv1d(hidden_dim, input_dim, kernel_size, padding=kernel_size//2)
+        self.norm1 = nn.LayerNorm(hidden_dim)
+        self.norm2 = nn.LayerNorm(input_dim)
+        self.dropout = nn.Dropout(0.1)
+        
+    def forward(self, x):
+        # x shape: (batch, seq_len, features)
+        x_conv = x.transpose(1, 2)  # (batch, features, seq_len)
+        
+        conv_out = F.relu(self.conv1(x_conv))
+        conv_out = conv_out.transpose(1, 2)  # (batch, seq_len, hidden_dim)
+        conv_out = self.norm1(conv_out)
+        conv_out = self.dropout(conv_out)
+        
+        conv_out = conv_out.transpose(1, 2)  # (batch, hidden_dim, seq_len)
+        conv_out = self.conv2(conv_out)
+        conv_out = conv_out.transpose(1, 2)  # (batch, seq_len, features)
+        
+        return self.norm2(x + conv_out)
+
+class SCINetSA(nn.Module):
+    """SCINet with Self-Attention 軌道預測模型"""
+    def __init__(self, input_dim=6, hidden_dim=64, num_layers=4, seq_len=168, pred_len=24):
+        super(SCINetSA, self).__init__()
+        self.input_dim = input_dim  # x, y, z, vx, vy, vz
+        self.hidden_dim = hidden_dim
+        self.seq_len = seq_len  # 歷史數據長度（小時）
+        self.pred_len = pred_len  # 預測長度（小時）
+        
+        # 輸入嵌入
+        self.input_embed = nn.Linear(input_dim, hidden_dim)
+        
+        # SCINet 層
+        self.scinet_layers = nn.ModuleList([
+            SCINetBlock(hidden_dim, hidden_dim * 2) for _ in range(num_layers)
+        ])
+        
+        # 自注意力層
+        self.self_attention = SelfAttention(hidden_dim)
+        
+        # 輸出層
+        self.output_projection = nn.Linear(hidden_dim, input_dim)
+        self.final_projection = nn.Linear(seq_len, pred_len)
+        
+    def forward(self, x):
+        # x shape: (batch, seq_len, input_dim)
+        x = self.input_embed(x)
+        
+        # SCINet 層
+        for layer in self.scinet_layers:
+            x = layer(x)
+        
+        # 自注意力
+        x = self.self_attention(x)
+        
+        # 輸出投影
+        x = self.output_projection(x)  # (batch, seq_len, input_dim)
+        x = x.transpose(1, 2)  # (batch, input_dim, seq_len)
+        x = self.final_projection(x)  # (batch, input_dim, pred_len)
+        x = x.transpose(1, 2)  # (batch, pred_len, input_dim)
+        
+        return x
+
+class OrbitPredictionEnhancer:
+    """軌道預測增強器 - 基於深度學習"""
+    
+    def __init__(self, model_path=None):
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = SCINetSA().to(self.device)
+        self.scaler = StandardScaler()
+        self.history_buffer = deque(maxlen=168)  # 保存7天的歷史數據（每小時一個點）
+        self.is_trained = False
+        
+        if model_path and os.path.exists(model_path):
+            self.load_model(model_path)
+    
+    def collect_orbit_data(self, satellite_states):
+        """收集衛星軌道狀態數據"""
+        for sat_name, state in satellite_states.items():
+            if 'STARLINK' in sat_name:  # 只處理 Starlink 衛星
+                # 提取位置和速度向量
+                orbit_vector = [
+                    state.get('x', 0), state.get('y', 0), state.get('z', 0),
+                    state.get('vx', 0), state.get('vy', 0), state.get('vz', 0)
+                ]
+                self.history_buffer.append({
+                    'timestamp': datetime.now(),
+                    'satellite': sat_name,
+                    'orbit_vector': orbit_vector
+                })
+    
+    def predict_orbit_corrections(self, current_orbits, prediction_hours=24):
+        """預測軌道修正量"""
+        if not self.is_trained or len(self.history_buffer) < 168:
+            return {}  # 需要足夠的歷史數據
+        
+        corrections = {}
+        
+        try:
+            # 準備輸入數據
+            X = []
+            for i in range(len(self.history_buffer) - 168 + 1, len(self.history_buffer) + 1):
+                if i >= 0:
+                    X.append(self.history_buffer[i]['orbit_vector'])
+            
+            X = np.array(X).reshape(1, 168, 6)  # (1, seq_len, features)
+            X_scaled = self.scaler.transform(X.reshape(-1, 6)).reshape(1, 168, 6)
+            
+            # 模型預測
+            with torch.no_grad():
+                X_tensor = torch.FloatTensor(X_scaled).to(self.device)
+                predictions = self.model(X_tensor)
+                predictions = predictions.cpu().numpy()
+                
+                # 反標準化
+                predictions = self.scaler.inverse_transform(
+                    predictions.reshape(-1, 6)
+                ).reshape(1, prediction_hours, 6)
+            
+            # 計算修正量
+            for sat_name, current_state in current_orbits.items():
+                if 'STARLINK' in sat_name:
+                    predicted_corrections = predictions[0]  # 取第一個批次的結果
+                    corrections[sat_name] = predicted_corrections
+                    
+        except Exception as e:
+            print(f"軌道預測修正失敗: {e}")
+        
+        return corrections
+    
+    def train_model(self, orbit_history_data, epochs=100):
+        """訓練模型"""
+        if len(orbit_history_data) < 1000:  # 需要足夠的訓練數據
+            print("警告：訓練數據不足")
+            return False
+        
+        # 準備訓練數據
+        X, y = self._prepare_training_data(orbit_history_data)
+        
+        # 標準化
+        X_scaled = self.scaler.fit_transform(X.reshape(-1, 6)).reshape(X.shape)
+        y_scaled = self.scaler.transform(y.reshape(-1, 6)).reshape(y.shape)
+        
+        # 轉換為 PyTorch 張量
+        X_tensor = torch.FloatTensor(X_scaled).to(self.device)
+        y_tensor = torch.FloatTensor(y_scaled).to(self.device)
+        
+        # 訓練
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        criterion = nn.MSELoss()
+        
+        self.model.train()
+        for epoch in range(epochs):
+            optimizer.zero_grad()
+            outputs = self.model(X_tensor)
+            loss = criterion(outputs, y_tensor)
+            loss.backward()
+            optimizer.step()
+            
+            if epoch % 20 == 0:
+                print(f"Epoch {epoch}, Loss: {loss.item():.6f}")
+        
+        self.is_trained = True
+        return True
+    
+    def _prepare_training_data(self, orbit_data):
+        """準備訓練數據"""
+        # 實現數據準備邏輯
+        # 這裡需要根據實際的軌道數據格式來實現
+        pass
+    
+    def save_model(self, path):
+        """保存模型"""
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'scaler': self.scaler,
+            'is_trained': self.is_trained
+        }, path)
+    
+    def load_model(self, path):
+        """載入模型"""
+        checkpoint = torch.load(path, map_location=self.device)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.scaler = checkpoint['scaler']
+        self.is_trained = checkpoint['is_trained']
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Starlink 衛星覆蓋分析工具")

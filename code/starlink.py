@@ -155,9 +155,14 @@ def main():
                 env = os.environ.copy()
                 env["R_SHINY_PORT"] = str(args.port)
                 env["R_SHINY_HOST"] = args.host
+                env["LANG"] = "en_US.UTF-8"
+                env["LC_ALL"] = "en_US.UTF-8"
+                env["LC_CTYPE"] = "en_US.UTF-8"
                 
                 # 使用 R 命令啟動 Shiny 應用
                 r_command = f"""
+Sys.setlocale("LC_ALL", "en_US.UTF-8")
+options(encoding = "UTF-8")
 library(shiny)
 runApp(appDir=".", port={args.port}, host="{args.host}", launch.browser=FALSE)
 """
