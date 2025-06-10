@@ -13,7 +13,7 @@
 | 李恩甫 | 資科碩ㄧ | 113753207 | Proposal+實驗+報告 |
 | 李昕融 | 資科碩一 | 113753128 | 實驗+報告 |
 | 賴映君 | 資科碩一 | 113753208 | 實驗+報告 |
-| 賴芷靚 | 資科四 | 110703041 | 前端 |
+| 賴芷靚 | 資科四 | 110703041 | 前端+簡報 |
 | 李采萱 | 資科三 | 110207434 | 簡報+README整理 |
 | 蕭佩欣 | 資管三 | 111306018 | 海報製作+追蹤進度 |
 
@@ -22,11 +22,12 @@
 ### 系統需求
 - **作業系統**：Linux, macOS, 或 Windows
 - **Python**：3.8+
+- **R**：4+
 - **記憶體**：建議 4GB 以上
 - **網路連線**：獲取 TLE 數據所需
 
 ### 安裝步驟
-1.  **克隆專案庫**
+1.  **下載專案程式碼**
     ```bash
     git clone https://github.com/Lean0411/Starlink-Taipei.git
     cd Starlink-Taipei
@@ -66,23 +67,32 @@ python starlink.py health
 
 ## Folder Organization
 
+### code
+
 ```
 .
-├── R/                          # R scripts for analysis and visualization
-│   ├── analysis.R             # Core analysis functions
-│   └── plots.R                # Visualization functions
-├── requirements/              # Python dependency specifications
-│   ├── base.txt              # Base requirements
-│   └── production.txt        # Production-specific requirements
-├── app.R                     # Main R Shiny application
-├── server.R                  # Server-side R Shiny logic
-├── ui.R                      # UI components for R Shiny
-├── satellite_analysis.py     # Core Python satellite analysis module
-├── starlink.py              # Main Python CLI interface
-├── environment.yml          # Conda environment specification
-├── Dockerfile              # Docker configuration
-├── docker-compose.yml     # Docker Compose configuration
-└── README.md             # Project documentation
+├── app                            # 應用邏輯的主目錄
+│   └── services                   # 提供特定功能或服務的 Python 模組
+│       ├── prediction_service.py  # 負責模型預測相關邏輯
+│       └── r_integration.py       # 與 R 程式整合的 Python 介面
+├── app.R                          # R 語言的主應用程式入口，通常用於 Shiny App
+├── docker-compose.yml             # 定義多個容器服務的設定檔（例如 R + Python）
+├── Dockerfile                     # 用於建立 Docker 映像的設定檔
+├── environment.yml                # Conda 環境設定檔，列出依賴套件（通常為 Python）
+├── R                              # 儲存 R 腳本的資料夾
+│   ├── analysis.R                 # R 的分析邏輯，例如資料處理或模型訓練 
+│   └── plots.R                    # R 的資料視覺化腳本
+├── requirements                   # 儲存多種需求設定的資料夾
+│   ├── base.txt                   # 通用基礎套件需求（例如開發或本地執行用）
+│   └── production.txt             # 生產環境下所需的額外套件
+├── requirements.txt               # Python 套件需求清單，可能會引用上方 base.txt
+├── satellite_analysis.py          # 與衛星資料分析相關的 Python 腳本
+├── scripts                        # 一般輔助腳本（例如資料擷取或系統監測）
+│   ├── data_collection.py         # 自動化資料收集流程
+│   └── system_analysis.py         # 系統分析、效能監控等工具腳本
+├── server.R                       # R Shiny 應用的後端邏輯
+├── starlink.py                    # 與 Starlink 資料相關的分析或 API 處理腳本
+└── ui.R                           # R Shiny 應用的使用者介面設計
 
 Key files and their purposes:
 - satellite_analysis.py: Core implementation of satellite tracking and analysis
